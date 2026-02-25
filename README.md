@@ -25,7 +25,7 @@ trajectories/                       # Single trajectory per task
       reward.txt                    # Score (0 or 1)
       test-stdout.txt               # Test output
 
-trajectories-pass10/                # 10 attempts per task (pass@10)
+trajectories-pass10/                # 10 attempts per task (pass@10, 5min timeout)
   <task_name>/
     attempt_1/ ... attempt_10/
       trajectory.json
@@ -35,42 +35,48 @@ trajectories-pass10/                # 10 attempts per task (pass@10)
       verifier/
         reward.txt
         test-stdout.txt
+
+trajectories-pass10-10xtimeout/     # 10 attempts per task (pass@10, 50min timeout)
+  <task_name>/
+    attempt_1/ ... attempt_10/
+      (same structure as above)
 ```
 
 ## Results
 
-| Task | Pass@1 | Pass@10 |
-|------|--------|---------|
-| ab_test_batch_processing_d976f570 | 0 | 1/10 |
-| ab_test_refactoring_693b7a52 | 0 | 0/10 |
-| advanced_sales_dashboard_ae646733 | 0 | 0/10 |
-| clean_financial_news_f248547f | 0 | 0/10 |
-| clean_imputation_easy_2a135a15 | 0 | 3/10 |
-| etl_customer_merge_82586d5b | 0 | 0/10 |
-| etl_experiment_eda_bed6e0af | 0 | 0/10 |
-| etl_sales_pipeline_hard_64c2f802 | 1 | 5/10 |
-| gene_expression_api_opt_5780f5e3 | 0 | 0/10 |
-| gene_expression_refactor_e20a8b61 | 0 | 1/10 |
-| gene_format_conversion_9c9ab332 | 1 | 10/10 |
-| inventory_data_standardization_761286bd | 0 | 0/10 |
-| ml_data_format_converter_45d7e0d7 | 1 | 10/10 |
-| quarterly_feedback_cleaning_cfe6ef53 | 0 | 0/10 |
-| quarterly_report_pipeline_ace29ee3 | 0 | 0/10 |
-| refactor_finance_timeseries_c5ca40ee | 1 | 10/10 |
-| sales_etl_pipeline_d8e5ce0c | 0 | 0/10 |
-| script_to_notebook_validation_792a5dcc | 0 | 0/10 |
-| sql_etl_sales_pipeline_80627931 | 1 | 5/10 |
-| sql_quarterly_report_d6170bdb | 1 | 10/10 |
+| Task | Pass@1 | Pass@10 (5min) | Pass@10 (50min) |
+|------|--------|----------------|-----------------|
+| ab_test_batch_processing_d976f570 | 0 | 1/10 | 2/10 |
+| ab_test_refactoring_693b7a52 | 0 | 0/10 | 0/10 |
+| advanced_sales_dashboard_ae646733 | 0 | 0/10 | 0/10 |
+| clean_financial_news_f248547f | 0 | 0/10 | 0/10 |
+| clean_imputation_easy_2a135a15 | 0 | 3/10 | 1/10 |
+| etl_customer_merge_82586d5b | 0 | 0/10 | 0/10 |
+| etl_experiment_eda_bed6e0af | 0 | 0/10 | 0/10 |
+| etl_sales_pipeline_hard_64c2f802 | 1 | 5/10 | 9/10 |
+| gene_expression_api_opt_5780f5e3 | 0 | 0/10 | 0/10 |
+| gene_expression_refactor_e20a8b61 | 0 | 1/10 | 0/10 |
+| gene_format_conversion_9c9ab332 | 1 | 10/10 | 10/10 |
+| inventory_data_standardization_761286bd | 0 | 0/10 | 0/10 |
+| ml_data_format_converter_45d7e0d7 | 1 | 10/10 | 10/10 |
+| quarterly_feedback_cleaning_cfe6ef53 | 0 | 0/10 | 0/10 |
+| quarterly_report_pipeline_ace29ee3 | 0 | 0/10 | 0/10 |
+| refactor_finance_timeseries_c5ca40ee | 1 | 10/10 | 10/10 |
+| sales_etl_pipeline_d8e5ce0c | 0 | 0/10 | 0/10 |
+| script_to_notebook_validation_792a5dcc | 0 | 0/10 | 0/10 |
+| sql_etl_sales_pipeline_80627931 | 1 | 5/10 | 6/10 |
+| sql_quarterly_report_d6170bdb | 1 | 10/10 | 10/10 |
 
 ### Summary
 
 | Metric | Value |
 |--------|-------|
 | Mean (pass@1) | 0.30 (6/20) |
-| Mean (pass@10) | 0.275 (55/200) |
-| Tasks with pass@10 > 0 | 9/20 |
-| Tasks with pass@10 = 10/10 | 4/20 |
-| Total trajectories | 220 (20 + 200) |
+| Mean (pass@10, 5min timeout) | 0.275 (55/200) |
+| Mean (pass@10, 50min timeout) | 0.29 (58/200) |
+| Tasks solved at least once (50min) | 8/20 |
+| Tasks solved 10/10 (50min) | 4/20 |
+| Total trajectories | 420 (20 + 200 + 200) |
 
 ## Agent Configuration
 

@@ -1,0 +1,577 @@
+YOLO mode is enabled. All tool calls will be automatically approved.
+YOLO mode is enabled. All tool calls will be automatically approved.
+Bash command parsing error detected for command: << 'EOF' > /tmp/create_notebook.py
+import json
+
+code = """import pandas as pd
+import numpy as np
+import json
+import matplotlib.pyplot as plt
+
+# 1. Read and Clean Data
+df_sales = pd.read_csv('/home/user/sales_data.csv')
+df_rates = pd.read_csv('/home/user/exchange_rates.csv')
+
+# Parse Date columns with mixed formats and convert to datetime
+df_sales['Date'] = pd.to_datetime(df_sales['Date'], format='mixed').dt.normalize()
+df_rates['Date'] = pd.to_datetime(df_rates['Date'], format='mixed').dt.normalize()
+
+# Drop rows with missing values in Quantity or UnitPrice
+df_sales = df_sales.dropna(subset=['Quantity', 'UnitPrice'])
+
+# Remove rows where Quantity <= 0 or UnitPrice <= 0
+df_sales = df_sales[(df_sales['Quantity'] > 0) & (df_sales['UnitPrice'] > 0)]
+
+# 2. Currency Conversion
+if not df_sales.empty and not df_rates.empty:
+    min_date = min(df_sales['Date'].min(), df_rates['Date'].min())
+    max_date = max(df_sales['Date'].max(), df_rates['Date'].max())
+    all_dates = pd.date_range(start=min_date, end=max_date)
+
+    filled_rates = []
+    currencies = df_sales['Currency'].unique()
+    
+    for currency in currencies:
+        curr_rates = df_rates[df_rates['Currency'] == currency].copy()
+        curr_rates = curr_rates.sort_values('Date')
+        curr_rates = curr_rates.set_index('Date')
+        curr_rates = curr_rates[['Rate_to_USD']]
+        curr_rates = curr_rates[~curr_rates.index.duplicated(keep='last')]
+        curr_rates = curr_rates.reindex(all_dates)
+        curr_rates['Rate_to_USD'] = curr_rates['Rate_to_USD'].ffill().bfill()
+        curr_rates = curr_rates.rename_axis('Date').reset_index()
+        curr_rates['Currency'] = currency
+        filled_rates.append(curr_rates)
+        
+    if filled_rates:
+        df_rates_full = pd.concat(filled_rates, ignore_index=True)
+        df_sales = df_sales.merge(df_rates_full, on=['Date', 'Currency'], how='left')
+    else:
+        df_sales['Rate_to_USD'] = np.nan
+else:
+    df_sales['Rate_to_USD'] = np.nan
+
+# Calculate USD_Revenue
+df_sales['USD_Revenue'] = df_sales['Quantity'] * df_sales['UnitPrice'] / df_sales['Rate_to_USD']
+
+# 3. Aggregation
+if not df_sales.empty:
+    sales_dates = pd.date_range(start=df_sales['Date'].min(), end=df_sales['Date'].max())
+    df_daily = df_sales.groupby('Date')['USD_Revenue'].sum().reindex(sales_dates, fill_value=0.0).reset_index()
+    df_daily.columns = ['Date', 'Daily_Revenue']
+    df_daily['Rolling_7d_Revenue'] = df_daily['Daily_Revenue'].rolling(window=7, min_periods=1).mean()
+else:
+    df_daily = pd.DataFrame(columns=['Date', 'Daily_Revenue', 'Rolling_7d_Revenue'])
+
+# Convert dates to YYYY-MM-DD string
+df_daily['Date'] = df_daily['Date'].dt.strftime('%Y-%m-%d')
+
+# Round to 2 decimal places
+df_daily['Daily_Revenue'] = df_daily['Daily_Revenue'].round(2)
+df_daily['Rolling_7d_Revenue'] = df_daily['Rolling_7d_Revenue'].round(2)
+
+# Save the daily aggregated data
+df_daily[['Date', 'Daily_Revenue', 'Rolling_7d_Revenue']].to_csv('/home/user/daily_sales.csv', index=False)
+
+# 4. Outputs
+total_revenue = float(df_sales['USD_Revenue'].sum()) if not df_sales['USD_Revenue'].isna().all() else 0.0
+total_revenue = round(total_revenue, 2)
+
+if not df_sales.empty and not df_sales['USD_Revenue'].isna().all():
+    top_product = str(df_sales.groupby('Product')['USD_Revenue'].sum().idxmax())
+else:
+    top_product = None
+
+metrics = {
+    "Total_USD_Revenue": total_revenue,
+    "Top_Product": top_product
+}
+
+with open('/home/user/metrics.json', 'w') as f:
+    json.dump(metrics, f, indent=4)
+
+# Create a plot
+plt.figure(figsize=(10, 6))
+if not df_daily.empty:
+    plt.plot(pd.to_datetime(df_daily['Date']), df_daily['Rolling_7d_Revenue'], label='7-Day Rolling Revenue', color='blue', marker='o')
+plt.title('Rolling 7-Day USD Revenue')
+plt.xlabel('Date')
+plt.ylabel('USD Revenue')
+plt.grid(True)
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('/home/user/dashboard.png')
+"""
+
+notebook = {
+    "cells": [
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": [line + "\n" for line in code.split("\n")][:-1]
+        }
+    ],
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3",
+            "language": "python",
+            "name": "python3"
+        },
+        "language_info": {
+            "name": "python"
+        }
+    },
+    "nbformat": 4,
+    "nbformat_minor": 4
+}
+
+with open('/home/user/dashboard.ipynb', 'w') as f:
+    json.dump(notebook, f, indent=2)
+
+EOF Syntax Errors: [
+  'Error node: "<" at 0:0',
+  'Missing node: "" at 110:57',
+  'Missing node: "" at 110:63',
+  'Error node: "open" at 127:5',
+  'Missing node: "" at 127:44'
+]
+Bash command parsing error detected for command: << 'EOF' > /tmp/create_notebook.py
+import json
+
+code = """import pandas as pd
+import numpy as np
+import json
+import matplotlib.pyplot as plt
+
+# 1. Read and Clean Data
+df_sales = pd.read_csv('/home/user/sales_data.csv')
+df_rates = pd.read_csv('/home/user/exchange_rates.csv')
+
+# Parse Date columns with mixed formats and convert to datetime
+df_sales['Date'] = pd.to_datetime(df_sales['Date'], format='mixed').dt.normalize()
+df_rates['Date'] = pd.to_datetime(df_rates['Date'], format='mixed').dt.normalize()
+
+# Drop rows with missing values in Quantity or UnitPrice
+df_sales = df_sales.dropna(subset=['Quantity', 'UnitPrice'])
+
+# Remove rows where Quantity <= 0 or UnitPrice <= 0
+df_sales = df_sales[(df_sales['Quantity'] > 0) & (df_sales['UnitPrice'] > 0)]
+
+# 2. Currency Conversion
+if not df_sales.empty and not df_rates.empty:
+    min_date = min(df_sales['Date'].min(), df_rates['Date'].min())
+    max_date = max(df_sales['Date'].max(), df_rates['Date'].max())
+    all_dates = pd.date_range(start=min_date, end=max_date)
+
+    filled_rates = []
+    currencies = df_sales['Currency'].unique()
+    
+    for currency in currencies:
+        curr_rates = df_rates[df_rates['Currency'] == currency].copy()
+        curr_rates = curr_rates.sort_values('Date')
+        curr_rates = curr_rates.set_index('Date')
+        curr_rates = curr_rates[['Rate_to_USD']]
+        curr_rates = curr_rates[~curr_rates.index.duplicated(keep='last')]
+        curr_rates = curr_rates.reindex(all_dates)
+        curr_rates['Rate_to_USD'] = curr_rates['Rate_to_USD'].ffill().bfill()
+        curr_rates = curr_rates.rename_axis('Date').reset_index()
+        curr_rates['Currency'] = currency
+        filled_rates.append(curr_rates)
+        
+    if filled_rates:
+        df_rates_full = pd.concat(filled_rates, ignore_index=True)
+        df_sales = df_sales.merge(df_rates_full, on=['Date', 'Currency'], how='left')
+    else:
+        df_sales['Rate_to_USD'] = np.nan
+else:
+    df_sales['Rate_to_USD'] = np.nan
+
+# Calculate USD_Revenue
+df_sales['USD_Revenue'] = df_sales['Quantity'] * df_sales['UnitPrice'] / df_sales['Rate_to_USD']
+
+# 3. Aggregation
+if not df_sales.empty:
+    sales_dates = pd.date_range(start=df_sales['Date'].min(), end=df_sales['Date'].max())
+    df_daily = df_sales.groupby('Date')['USD_Revenue'].sum().reindex(sales_dates, fill_value=0.0).reset_index()
+    df_daily.columns = ['Date', 'Daily_Revenue']
+    df_daily['Rolling_7d_Revenue'] = df_daily['Daily_Revenue'].rolling(window=7, min_periods=1).mean()
+else:
+    df_daily = pd.DataFrame(columns=['Date', 'Daily_Revenue', 'Rolling_7d_Revenue'])
+
+# Convert dates to YYYY-MM-DD string
+df_daily['Date'] = pd.to_datetime(df_daily['Date']).dt.strftime('%Y-%m-%d')
+
+# Round to 2 decimal places
+df_daily['Daily_Revenue'] = df_daily['Daily_Revenue'].round(2)
+df_daily['Rolling_7d_Revenue'] = df_daily['Rolling_7d_Revenue'].round(2)
+
+# Save the daily aggregated data
+df_daily[['Date', 'Daily_Revenue', 'Rolling_7d_Revenue']].to_csv('/home/user/daily_sales.csv', index=False)
+
+# 4. Outputs
+total_revenue = float(df_sales['USD_Revenue'].sum()) if not df_sales['USD_Revenue'].isna().all() else 0.0
+total_revenue = round(total_revenue, 2)
+
+if not df_sales.empty and not df_sales['USD_Revenue'].isna().all():
+    top_product = str(df_sales.groupby('Product')['USD_Revenue'].sum().idxmax())
+else:
+    top_product = None
+
+metrics = {
+    "Total_USD_Revenue": total_revenue,
+    "Top_Product": top_product
+}
+
+with open('/home/user/metrics.json', 'w') as f:
+    json.dump(metrics, f, indent=4)
+
+# Create a plot
+plt.figure(figsize=(10, 6))
+if not df_daily.empty:
+    plt.plot(pd.to_datetime(df_daily['Date']), df_daily['Rolling_7d_Revenue'], label='7-Day Rolling Revenue', color='blue', marker='o')
+plt.title('Rolling 7-Day USD Revenue')
+plt.xlabel('Date')
+plt.ylabel('USD Revenue')
+plt.grid(True)
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('/home/user/dashboard.png')
+"""
+
+notebook = {
+    "cells": [
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": [line + "\n" for line in code.split("\n")][:-1]
+        }
+    ],
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3",
+            "language": "python",
+            "name": "python3"
+        },
+        "language_info": {
+            "name": "python"
+        }
+    },
+    "nbformat": 4,
+    "nbformat_minor": 4
+}
+
+with open('/home/user/dashboard.ipynb', 'w') as f:
+    json.dump(notebook, f, indent=2)
+EOF Syntax Errors: [
+  'Error node: "<" at 0:0',
+  'Missing node: "" at 110:57',
+  'Missing node: "" at 110:63',
+  'Error node: "open" at 127:5',
+  'Missing node: "" at 127:44'
+]
+Bash command parsing error detected for command: << 'EOF' > /tmp/create_notebook.py
+import json
+
+code = """import pandas as pd
+import numpy as np
+import json
+import matplotlib.pyplot as plt
+
+# 1. Read and Clean Data
+df_sales = pd.read_csv('/home/user/sales_data.csv')
+df_rates = pd.read_csv('/home/user/exchange_rates.csv')
+
+# Parse Date columns with mixed formats and convert to datetime
+df_sales['Date'] = pd.to_datetime(df_sales['Date'], format='mixed').dt.normalize()
+df_rates['Date'] = pd.to_datetime(df_rates['Date'], format='mixed').dt.normalize()
+
+# Drop rows with missing values in Quantity or UnitPrice
+df_sales = df_sales.dropna(subset=['Quantity', 'UnitPrice'])
+
+# Remove rows where Quantity <= 0 or UnitPrice <= 0
+df_sales = df_sales[(df_sales['Quantity'] > 0) & (df_sales['UnitPrice'] > 0)]
+
+# 2. Currency Conversion
+if not df_sales.empty and not df_rates.empty:
+    min_date = min(df_sales['Date'].min(), df_rates['Date'].min())
+    max_date = max(df_sales['Date'].max(), df_rates['Date'].max())
+    all_dates = pd.date_range(start=min_date, end=max_date)
+
+    filled_rates = []
+    currencies = df_sales['Currency'].unique()
+    
+    for currency in currencies:
+        curr_rates = df_rates[df_rates['Currency'] == currency].copy()
+        curr_rates = curr_rates.sort_values('Date')
+        curr_rates = curr_rates.set_index('Date')
+        curr_rates = curr_rates[['Rate_to_USD']]
+        curr_rates = curr_rates[~curr_rates.index.duplicated(keep='last')]
+        curr_rates = curr_rates.reindex(all_dates)
+        curr_rates['Rate_to_USD'] = curr_rates['Rate_to_USD'].ffill().bfill()
+        curr_rates = curr_rates.rename_axis('Date').reset_index()
+        curr_rates['Currency'] = currency
+        filled_rates.append(curr_rates)
+        
+    if filled_rates:
+        df_rates_full = pd.concat(filled_rates, ignore_index=True)
+        df_sales = df_sales.merge(df_rates_full, on=['Date', 'Currency'], how='left')
+    else:
+        df_sales['Rate_to_USD'] = np.nan
+else:
+    df_sales['Rate_to_USD'] = np.nan
+
+# Calculate USD_Revenue
+df_sales['USD_Revenue'] = df_sales['Quantity'] * df_sales['UnitPrice'] / df_sales['Rate_to_USD']
+
+# 3. Aggregation
+if not df_sales.empty:
+    sales_dates = pd.date_range(start=df_sales['Date'].min(), end=df_sales['Date'].max())
+    df_daily = df_sales.groupby('Date')['USD_Revenue'].sum().reindex(sales_dates, fill_value=0.0).reset_index()
+    df_daily.columns = ['Date', 'Daily_Revenue']
+    df_daily['Rolling_7d_Revenue'] = df_daily['Daily_Revenue'].rolling(window=7, min_periods=1).mean()
+else:
+    df_daily = pd.DataFrame(columns=['Date', 'Daily_Revenue', 'Rolling_7d_Revenue'])
+    df_daily = df_daily.astype({'Daily_Revenue': float, 'Rolling_7d_Revenue': float})
+
+# Convert dates to YYYY-MM-DD string
+df_daily['Date'] = pd.to_datetime(df_daily['Date']).dt.strftime('%Y-%m-%d')
+
+# Round to 2 decimal places
+df_daily['Daily_Revenue'] = df_daily['Daily_Revenue'].round(2)
+df_daily['Rolling_7d_Revenue'] = df_daily['Rolling_7d_Revenue'].round(2)
+
+# Save the daily aggregated data
+df_daily[['Date', 'Daily_Revenue', 'Rolling_7d_Revenue']].to_csv('/home/user/daily_sales.csv', index=False)
+
+# 4. Outputs
+total_revenue = float(df_sales['USD_Revenue'].sum()) if not df_sales['USD_Revenue'].isna().all() else 0.0
+total_revenue = round(total_revenue, 2)
+
+if not df_sales.empty and not df_sales['USD_Revenue'].isna().all():
+    top_product = str(df_sales.groupby('Product')['USD_Revenue'].sum().idxmax())
+else:
+    top_product = None
+
+metrics = {
+    "Total_USD_Revenue": total_revenue,
+    "Top_Product": top_product
+}
+
+with open('/home/user/metrics.json', 'w') as f:
+    json.dump(metrics, f, indent=4)
+
+# Create a plot
+plt.figure(figsize=(10, 6))
+if not df_daily.empty:
+    plt.plot(pd.to_datetime(df_daily['Date']), df_daily['Rolling_7d_Revenue'], label='7-Day Rolling Revenue', color='blue', marker='o')
+plt.title('Rolling 7-Day USD Revenue')
+plt.xlabel('Date')
+plt.ylabel('USD Revenue')
+plt.grid(True)
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('/home/user/dashboard.png')
+"""
+
+notebook = {
+    "cells": [
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": [line + "\n" for line in code.split("\n")][:-1]
+        }
+    ],
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3",
+            "language": "python",
+            "name": "python3"
+        },
+        "language_info": {
+            "name": "python"
+        }
+    },
+    "nbformat": 4,
+    "nbformat_minor": 4
+}
+
+with open('/home/user/dashboard.ipynb', 'w') as f:
+    json.dump(notebook, f, indent=2)
+EOF Syntax Errors: [
+  'Error node: "<" at 0:0',
+  'Missing node: "" at 111:57',
+  'Missing node: "" at 111:63',
+  'Error node: "open" at 128:5',
+  'Missing node: "" at 128:44'
+]
+Bash command parsing error detected for command: << 'EOF' > /tmp/create_notebook.py
+import json
+
+code = """import pandas as pd
+import numpy as np
+import json
+import matplotlib.pyplot as plt
+
+# 1. Read and Clean Data
+df_sales = pd.read_csv('/home/user/sales_data.csv')
+df_rates = pd.read_csv('/home/user/exchange_rates.csv')
+
+# Parse Date columns with mixed formats and convert to datetime
+df_sales['Date'] = pd.to_datetime(df_sales['Date'], format='mixed').dt.normalize()
+df_rates['Date'] = pd.to_datetime(df_rates['Date'], format='mixed').dt.normalize()
+
+# Ensure numeric types
+if not df_sales.empty:
+    df_sales['Quantity'] = pd.to_numeric(df_sales['Quantity'], errors='coerce')
+    df_sales['UnitPrice'] = pd.to_numeric(df_sales['UnitPrice'], errors='coerce')
+if not df_rates.empty:
+    df_rates['Rate_to_USD'] = pd.to_numeric(df_rates['Rate_to_USD'], errors='coerce')
+
+# Drop rows with missing values in Quantity or UnitPrice
+df_sales = df_sales.dropna(subset=['Quantity', 'UnitPrice'])
+
+# Remove rows where Quantity <= 0 or UnitPrice <= 0
+df_sales = df_sales[(df_sales['Quantity'] > 0) & (df_sales['UnitPrice'] > 0)]
+
+# 2. Currency Conversion
+if not df_sales.empty and not df_rates.empty:
+    min_date = min(df_sales['Date'].min(), df_rates['Date'].min())
+    max_date = max(df_sales['Date'].max(), df_rates['Date'].max())
+    all_dates = pd.date_range(start=min_date, end=max_date)
+
+    filled_rates = []
+    currencies = df_sales['Currency'].unique()
+    
+    for currency in currencies:
+        curr_rates = df_rates[df_rates['Currency'] == currency].copy()
+        curr_rates = curr_rates.sort_values('Date')
+        curr_rates = curr_rates.set_index('Date')
+        
+        # Keep only Rate_to_USD and filter duplicates
+        if 'Rate_to_USD' in curr_rates.columns:
+            curr_rates = curr_rates[['Rate_to_USD']]
+            curr_rates = curr_rates[~curr_rates.index.duplicated(keep='last')]
+            curr_rates = curr_rates.reindex(all_dates)
+            curr_rates['Rate_to_USD'] = curr_rates['Rate_to_USD'].ffill().bfill()
+            curr_rates = curr_rates.rename_axis('Date').reset_index()
+            curr_rates['Currency'] = currency
+            filled_rates.append(curr_rates)
+        
+    if filled_rates:
+        df_rates_full = pd.concat(filled_rates, ignore_index=True)
+        df_sales = df_sales.merge(df_rates_full, on=['Date', 'Currency'], how='left')
+    else:
+        df_sales['Rate_to_USD'] = np.nan
+else:
+    df_sales['Rate_to_USD'] = np.nan
+
+# Calculate USD_Revenue
+if not df_sales.empty:
+    df_sales['USD_Revenue'] = df_sales['Quantity'] * df_sales['UnitPrice'] / df_sales['Rate_to_USD']
+else:
+    df_sales['USD_Revenue'] = pd.Series(dtype=float)
+
+# 3. Aggregation
+if not df_sales.empty:
+    sales_dates = pd.date_range(start=df_sales['Date'].min(), end=df_sales['Date'].max())
+    df_daily = df_sales.groupby('Date')['USD_Revenue'].sum().reindex(sales_dates, fill_value=0.0).reset_index()
+    df_daily.columns = ['Date', 'Daily_Revenue']
+    df_daily['Rolling_7d_Revenue'] = df_daily['Daily_Revenue'].rolling(window=7, min_periods=1).mean()
+else:
+    df_daily = pd.DataFrame(columns=['Date', 'Daily_Revenue', 'Rolling_7d_Revenue'])
+    df_daily = df_daily.astype({'Daily_Revenue': float, 'Rolling_7d_Revenue': float})
+
+# Convert dates to YYYY-MM-DD string
+df_daily['Date'] = pd.to_datetime(df_daily['Date']).dt.strftime('%Y-%m-%d')
+
+# Round to 2 decimal places
+df_daily['Daily_Revenue'] = df_daily['Daily_Revenue'].round(2)
+df_daily['Rolling_7d_Revenue'] = df_daily['Rolling_7d_Revenue'].round(2)
+
+# Save the daily aggregated data
+df_daily[['Date', 'Daily_Revenue', 'Rolling_7d_Revenue']].to_csv('/home/user/daily_sales.csv', index=False)
+
+# 4. Outputs
+total_revenue = float(df_sales['USD_Revenue'].sum()) if not df_sales['USD_Revenue'].isna().all() else 0.0
+total_revenue = round(total_revenue, 2)
+
+if not df_sales.empty and not df_sales['USD_Revenue'].isna().all():
+    # Only consider valid rows for top product
+    valid_sales = df_sales.dropna(subset=['USD_Revenue'])
+    if not valid_sales.empty:
+        top_product = str(valid_sales.groupby('Product')['USD_Revenue'].sum().idxmax())
+    else:
+        top_product = None
+else:
+    top_product = None
+
+metrics = {
+    "Total_USD_Revenue": total_revenue,
+    "Top_Product": top_product
+}
+
+with open('/home/user/metrics.json', 'w') as f:
+    json.dump(metrics, f, indent=4)
+
+# Create a plot
+plt.figure(figsize=(10, 6))
+if not df_daily.empty:
+    plt.plot(pd.to_datetime(df_daily['Date']), df_daily['Rolling_7d_Revenue'], label='7-Day Rolling Revenue', color='blue', marker='o')
+plt.title('Rolling 7-Day USD Revenue')
+plt.xlabel('Date')
+plt.ylabel('USD Revenue')
+plt.grid(True)
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('/home/user/dashboard.png')
+"""
+
+notebook = {
+    "cells": [
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": [line + "\n" for line in code.split("\n")][:-1]
+        }
+    ],
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3",
+            "language": "python",
+            "name": "python3"
+        },
+        "language_info": {
+            "name": "python"
+        }
+    },
+    "nbformat": 4,
+    "nbformat_minor": 4
+}
+
+with open('/home/user/dashboard.ipynb', 'w') as f:
+    json.dump(notebook, f, indent=2)
+
+EOF Syntax Errors: [
+  'Error node: "<" at 0:0',
+  'Missing node: "" at 129:57',
+  'Missing node: "" at 129:63',
+  'Error node: "open" at 146:5',
+  'Missing node: "" at 146:44'
+]
+I have successfully created the Jupyter Notebook at `/home/user/dashboard.ipynb`. 
+
+The notebook has been built and configured to automatically perform the following operations:
+1. **Data Cleaning:** Reads the datasets and parses dates flexibly using Pandas' `mixed` format support, normalizes them, and drops invalid or returning rows where quantities/prices are missing or non-positive.
+2. **Currency Conversion:** Automatically establishes a date range spanning from the earliest to the latest record, mapping exchange rates efficiently. It forward-fills and back-fills any missing dates for all currencies and computes the valid `USD_Revenue`. 
+3. **Aggregation:** Computes the total daily USD revenue using `.groupby()` on all calendar days, mapping out missing days to `$0`, and generates the proper `Rolling_7d_Revenue` with `.rolling(window=7, min_periods=1)`.
+4. **Outputs Generation:** Correctly formats dates to `YYYY-MM-DD` and strictly limits numeric outputs to 2 decimal places. It dynamically produces `/home/user/daily_sales.csv`, aggregates highest performance metrics into `/home/user/metrics.json`, and graphs the 7-day trailing timeline, saving it as `/home/user/dashboard.png`. 
+
+The notebook is thoroughly tested for edge cases (including completely empty datasets) and runs flawlessly head-to-tail via `jupyter nbconvert`.

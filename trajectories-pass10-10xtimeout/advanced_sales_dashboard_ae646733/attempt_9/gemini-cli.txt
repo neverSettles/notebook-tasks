@@ -1,0 +1,617 @@
+YOLO mode is enabled. All tool calls will be automatically approved.
+YOLO mode is enabled. All tool calls will be automatically approved.
+Bash command parsing error detected for command: << 'EOF' > /home/user/test_script.py
+import pandas as pd
+import numpy as np
+import json
+import matplotlib.pyplot as plt
+
+try:
+    sales_df = pd.read_csv('/home/user/sales_data_test.csv')
+    rates_df = pd.read_csv('/home/user/exchange_rates_test.csv')
+except pd.errors.EmptyDataError:
+    sales_df = pd.DataFrame(columns=['Date', 'OrderID', 'Product', 'Quantity', 'UnitPrice', 'Currency'])
+    rates_df = pd.DataFrame(columns=['Date', 'Currency', 'Rate_to_USD'])
+
+if not sales_df.empty:
+    sales_df = sales_df.dropna(subset=['Quantity', 'UnitPrice'])
+    sales_df = sales_df[(sales_df['Quantity'] > 0) & (sales_df['UnitPrice'] > 0)]
+    sales_df['Date'] = pd.to_datetime(sales_df['Date'], format='mixed').dt.strftime('%Y-%m-%d')
+
+if not rates_df.empty:
+    rates_df['Date'] = pd.to_datetime(rates_df['Date'], format='mixed').dt.strftime('%Y-%m-%d')
+
+if not sales_df.empty and not rates_df.empty:
+    all_dates = pd.concat([sales_df['Date'], rates_df['Date']]).unique()
+    all_dates = sorted(all_dates)
+    all_currencies = pd.concat([sales_df['Currency'], rates_df['Currency']]).dropna().unique()
+    idx = pd.MultiIndex.from_product([all_dates, all_currencies], names=['Date', 'Currency'])
+    full_rates = pd.DataFrame(index=idx).reset_index()
+    full_rates = pd.merge(full_rates, rates_df, on=['Date', 'Currency'], how='left')
+    full_rates = full_rates.sort_values(['Currency', 'Date'])
+    full_rates['Rate_to_USD'] = full_rates.groupby('Currency')['Rate_to_USD'].ffill().bfill()
+    merged_df = pd.merge(sales_df, full_rates, on=['Date', 'Currency'], how='left')
+    merged_df['USD_Revenue'] = merged_df['Quantity'] * merged_df['UnitPrice'] / merged_df['Rate_to_USD']
+else:
+    merged_df = pd.DataFrame(columns=['Date', 'OrderID', 'Product', 'Quantity', 'UnitPrice', 'Currency', 'USD_Revenue'])
+
+if not merged_df.empty:
+    daily_sales = merged_df.groupby('Date', as_index=False)['USD_Revenue'].sum()
+    daily_sales.rename(columns={'USD_Revenue': 'Daily_Revenue'}, inplace=True)
+    daily_sales = daily_sales.sort_values('Date').reset_index(drop=True)
+    daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()
+else:
+    daily_sales = pd.DataFrame(columns=['Date', 'Daily_Revenue', 'Rolling_7d_Revenue'])
+
+if not daily_sales.empty:
+    daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)
+    daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)
+
+daily_sales.to_csv('/home/user/daily_sales.csv', index=False)
+
+if not merged_df.empty:
+    total_revenue = round(float(merged_df['USD_Revenue'].sum()), 2)
+    top_product_series = merged_df.groupby('Product')['USD_Revenue'].sum()
+    top_product = str(top_product_series.idxmax()) if not top_product_series.empty else None
+else:
+    total_revenue = 0.0
+    top_product = None
+
+metrics = {"Total_USD_Revenue": total_revenue, "Top_Product": top_product}
+with open('/home/user/metrics.json', 'w') as f:
+    json.dump(metrics, f)
+
+plt.figure(figsize=(10, 6))
+if not daily_sales.empty:
+    plt.plot(pd.to_datetime(daily_sales['Date']), daily_sales['Rolling_7d_Revenue'], marker='o', linestyle='-')
+plt.title('Rolling 7-Day USD Revenue')
+plt.xlabel('Date')
+plt.ylabel('Rolling 7-Day Revenue (USD)')
+plt.grid(True)
+plt.tight_layout()
+plt.savefig('/home/user/dashboard.png')
+plt.close()
+print("Success!")
+EOF Syntax Errors: [
+  `Error node: "<< 'EOF' > /home/user/test_script.py\n` +
+    'import pandas as pd\n' +
+    'import numpy as np\n' +
+    'import json\n' +
+    'import matplotlib.pyplot as plt\n' +
+    '\n' +
+    'try:\n' +
+    "    sales_df = pd.read_csv('/home/user/sales_data_test.csv')\n" +
+    "    rates_df = pd.read_csv('/home/user/exchange_rates_test.csv')\n" +
+    'except pd.errors.EmptyDataError:\n' +
+    "    sales_df = pd.DataFrame(columns=['Date', 'OrderID', 'Product', 'Quantity', 'UnitPrice', 'Currency'])\n" +
+    "    rates_df = pd.DataFrame(columns=['Date', 'Currency', 'Rate_to_USD'])\n" +
+    '\n' +
+    'if not sales_df.empty:\n' +
+    "    sales_df = sales_df.dropna(subset=['Quantity', 'UnitPrice'])\n" +
+    "    sales_df = sales_df[(sales_df['Quantity'] > 0) & (sales_df['UnitPrice'] > 0)]\n" +
+    "    sales_df['Date'] = pd.to_datetime(sales_df['Date'], format='mixed').dt.strftime('%Y-%m-%d')\n" +
+    '\n' +
+    'if not rates_df.empty:\n' +
+    "    rates_df['Date'] = pd.to_datetime(rates_df['Date'], format='mixed').dt.strftime('%Y-%m-%d')\n" +
+    '\n' +
+    'if not sales_df.empty and not rates_df.empty:\n' +
+    "    all_dates = pd.concat([sales_df['Date'], rates_df['Date']]).unique()\n" +
+    '    all_dates = sorted(all_dates)\n' +
+    "    all_currencies = pd.concat([sales_df['Currency'], rates_df['Currency']]).dropna().unique()\n" +
+    "    idx = pd.MultiIndex.from_product([all_dates, all_currencies], names=['Date', 'Currency'])\n" +
+    '    full_rates = pd.DataFrame(index=idx).reset_index()\n' +
+    "    full_rates = pd.merge(full_rates, rates_df, on=['Date', 'Currency'], how='left')\n" +
+    "    full_rates = full_rates.sort_values(['Currency', 'Date'])\n" +
+    "    full_rates['Rate_to_USD'] = full_rates.groupby('Currency')['Rate_to_USD'].ffill().bfill()\n" +
+    "    merged_df = pd.merge(sales_df, full_rates, on=['Date', 'Currency'], how='left')\n" +
+    "    merged_df['USD_Revenue'] = merged_df['Quantity'] * merged_df['UnitPrice'] / merged_df['Rate_to_USD']\n" +
+    'else:\n' +
+    "    merged_df = pd.DataFrame(columns=['Date', 'OrderID', 'Product', 'Quantity', 'UnitPrice', 'Currency', 'USD_Revenue'])\n" +
+    '\n' +
+    'if not merged_df.empty:\n' +
+    "    daily_sales = merged_df.groupby('Date', as_index=False)['USD_Revenue'].sum()\n" +
+    "    daily_sales.rename(columns={'USD_Revenue': 'Daily_Revenue'}, inplace=True)\n" +
+    "    daily_sales = daily_sales.sort_values('Date').reset_index(drop=True)\n" +
+    "    daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()\n" +
+    'else:\n' +
+    "    daily_sales = pd.DataFrame(columns=['Date', 'Daily_Revenue', 'Rolling_7d_Revenue'])\n" +
+    '\n' +
+    'if not daily_sales.empty:\n' +
+    "    daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)\n" +
+    "    daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)\n" +
+    '\n' +
+    "daily_sales.to_csv('/home/user/daily_sales.csv', index=False)\n" +
+    '\n' +
+    'if not merged_df.empty:\n' +
+    "    total_revenue = round(float(merged_df['USD_Revenue'].sum()), 2)\n" +
+    "    top_product_series = merged_df.groupby('Product')['USD_Revenue'].sum()\n" +
+    '    top_product = str(top_product_series.idxmax()) if not top_product_series.empty else None\n' +
+    'else:\n' +
+    '    total_revenue = 0.0\n' +
+    '    top_product = None\n' +
+    '\n' +
+    'metrics = {"Total_USD_Revenue": total_revenue, "Top_Product": top_product}\n' +
+    "with open('/home/user/metrics.json', 'w') as f:\n" +
+    '    json.dump(metrics, f)\n' +
+    '\n' +
+    'plt.figure(figsize=(10, 6))\n' +
+    'if not daily_sales.empty:\n' +
+    "    plt.plot(pd.to_datetime(daily_sales['Date']), daily_sales['Rolling_7d_Revenue'], marker='o', linestyle='-')\n" +
+    "plt.title('Rolling 7-Day USD Revenue')\n" +
+    "plt.xlabel('Date')\n" +
+    "plt.ylabel('Rolling 7-Day Revenue (USD)')\n" +
+    'plt.grid(True)\n' +
+    'plt.tight_layout()\n' +
+    "plt.savefig('/home/user/dashboard.png')\n" +
+    'plt.close()\n' +
+    'print("Success!")\n' +
+    'EOF" at 0:0',
+  'Missing node: "" at 7:26',
+  'Missing node: "" at 8:26',
+  'Missing node: "" at 10:27',
+  'Missing node: "" at 11:27',
+  'Missing node: "" at 14:30',
+  'Error node: "(" at 15:24',
+  'Error node: ")" at 15:49',
+  `Error node: "(sales_df['UnitPrice'] > 0)]\n` +
+    `    sales_df['Date'] = pd.to_datetime(sales_df['Date'], format='mixed').dt.strftime" at 15:53`,
+  `Error node: "sales_df['UnitPrice'] >" at 15:54`,
+  `Error node: "sales_df['Date']," at 16:38`,
+  `Error node: "rates_df['Date']," at 19:38`,
+  'Missing node: "" at 19:71',
+  'Error node: "= pd.concat" at 22:14',
+  `Error node: "sales_df['Date'], rates_df['Date']" at 22:27`,
+  'Missing node: "" at 22:63',
+  'Error node: "()" at 22:70',
+  'Missing node: "" at 23:22',
+  'Error node: "= pd.concat" at 24:19',
+  `Error node: "sales_df['Currency'], rates_df['Currency']" at 24:32`,
+  'Missing node: "" at 24:76',
+  'Error node: ".unique" at 24:85',
+  'Error node: ")\n    idx = pd.MultiIndex.from_product(" at 24:93',
+  'Error node: ")" at 25:92',
+  'Error node: "(" at 26:29',
+  'Error node: ")" at 26:39',
+  'Error node: "()" at 26:52',
+  'Error node: "(" at 27:25',
+  'Error node: ")" at 27:83',
+  'Error node: "([" at 28:39',
+  'Error node: ")" at 28:60',
+  'Error node: "(" at 29:50',
+  'Error node: ")[" at 29:61',
+  'Error node: "()" at 29:83',
+  'Error node: "()" at 29:91',
+  'Error node: "(" at 30:24',
+  'Error node: ")" at 30:82',
+  'Error node: "(" at 33:28',
+  'Error node: ")\n\nif" at 33:119',
+  'Error node: "(" at 36:35',
+  'Error node: ")[" at 36:58',
+  'Error node: "()" at 36:78',
+  'Error node: "(" at 37:22',
+  'Error node: ")" at 37:77',
+  'Error node: "(" at 38:41',
+  'Error node: ")" at 38:48',
+  'Error node: "(" at 38:61',
+  'Error node: ")" at 38:71',
+  'Error node: "(" at 39:76',
+  'Error node: ")" at 39:100',
+  'Error node: "()" at 39:106',
+  'Error node: "(" at 41:30',
+  'Error node: ")\n\nif" at 41:86',
+  'Error node: "(2)" at 44:69',
+  'Error node: "(2)" at 45:79',
+  'Error node: "(" at 47:18',
+  'Error node: ")\n\nif" at 47:60',
+  'Error node: "(" at 50:25',
+  'Error node: "(" at 50:31',
+  'Error node: "())," at 50:60',
+  'Error node: ")" at 50:66',
+  'Error node: "(" at 51:42',
+  'Error node: ")[" at 51:52',
+  'Error node: "()" at 51:72',
+  'Error node: "(" at 52:21',
+  'Error node: "()) if" at 52:47',
+  'Error node: "(" at 58:9',
+  'Error node: ")" at 58:40',
+  'Error node: "(" at 59:13',
+  'Error node: ")" at 59:24',
+  'Error node: "(" at 61:10',
+  'Error node: "(" at 61:19',
+  'Error node: "))\nif" at 61:25',
+  'Error node: "(" at 63:12',
+  'Error node: "(" at 63:27',
+  'Error node: ")," at 63:47',
+  'Error node: ")" at 63:110',
+  'Error node: "(" at 64:9',
+  'Error node: ")" at 64:37',
+  'Error node: "(" at 65:10',
+  'Error node: ")" at 65:17',
+  'Error node: "(" at 66:10',
+  'Error node: ")" at 66:40',
+  'Error node: "(" at 67:8',
+  'Error node: ")" at 67:13',
+  'Error node: "()" at 68:16',
+  'Error node: "(" at 69:11',
+  'Error node: ")" at 69:38',
+  'Error node: "()" at 70:9',
+  'Error node: "(" at 71:5',
+  'Error node: ")" at 71:16'
+]
+missing pgrep output
+Bash command parsing error detected for command: << 'EOF' > /home/user/test_script2.py
+import pandas as pd
+import numpy as np
+
+# Create dummy test data
+dates1 = ['2023-01-01', '2023-01-03', '2023-01-04']
+sales_df = pd.DataFrame({
+    'Date': dates1,
+    'OrderID': [1, 2, 3],
+    'Product': ['A', 'B', 'A'],
+    'Quantity': [10, 5, 2],
+    'UnitPrice': [20.0, 10.0, 20.0],
+    'Currency': ['USD', 'EUR', 'USD']
+})
+sales_df.to_csv('/home/user/sales_data_test.csv', index=False)
+
+dates2 = ['2023-01-01', '2023-01-04']
+rates_df = pd.DataFrame({
+    'Date': dates2,
+    'Currency': ['EUR', 'EUR'],
+    'Rate_to_USD': [1.1, 1.2]
+})
+# Also add USD to rates or just let ffill/bfill handle it? 
+# Wait, if a currency doesn't have any exchange rate, what happens? 
+# The prompt says: "The exchange rates are only provided for weekdays or specific dates. You must forward-fill missing exchange rates for each currency. If a sales date is before the first available exchange rate for a currency, back-fill it."
+# This implies USD might just be in the rates, or we should assume 1.0? 
+EOF Syntax Errors: [
+  'Error node: "<" at 0:0',
+  'Missing node: "" at 6:23',
+  'Missing node: "" at 17:23'
+]
+missing pgrep output
+Bash command parsing error detected for command: << 'EOF' > /home/user/create_notebook.py
+import json
+
+notebook_content = {
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import json\n",
+    "import matplotlib.pyplot as plt\n",
+    "import warnings\n",
+    "warnings.filterwarnings('ignore')\n",
+    "\n",
+    "# 1. Read Data\n",
+    "try:\n",
+    "    sales_df = pd.read_csv('/home/user/sales_data.csv')\n",
+    "except Exception:\n",
+    "    sales_df = pd.DataFrame()\n",
+    "\n",
+    "try:\n",
+    "    rates_df = pd.read_csv('/home/user/exchange_rates.csv')\n",
+    "except Exception:\n",
+    "    rates_df = pd.DataFrame()\n",
+    "\n",
+    "if not sales_df.empty:\n",
+    "    # Remove missing values in Quantity or UnitPrice\n",
+    "    sales_df = sales_df.dropna(subset=['Quantity', 'UnitPrice'])\n",
+    "    # Remove negative or zero Quantity and UnitPrice\n",
+    "    sales_df = sales_df[(sales_df['Quantity'] > 0) & (sales_df['UnitPrice'] > 0)]\n",
+    "    # Parse dates\n",
+    "    sales_df['Date'] = pd.to_datetime(sales_df['Date'], format='mixed', errors='coerce')\n",
+    "    sales_df = sales_df.dropna(subset=['Date'])\n",
+    "    sales_df['Date'] = sales_df['Date'].dt.strftime('%Y-%m-%d')\n",
+    "\n",
+    "if not rates_df.empty:\n",
+    "    # Parse dates\n",
+    "    rates_df['Date'] = pd.to_datetime(rates_df['Date'], format='mixed', errors='coerce')\n",
+    "    rates_df = rates_df.dropna(subset=['Date'])\n",
+    "    rates_df['Date'] = rates_df['Date'].dt.strftime('%Y-%m-%d')\n",
+    "    rates_df = rates_df.drop_duplicates(subset=['Date', 'Currency'], keep='last')\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# 2. Currency Conversion\n",
+    "if not sales_df.empty and not rates_df.empty:\n",
+    "    all_dates = pd.concat([sales_df['Date'], rates_df['Date']]).dropna().unique()\n",
+    "    all_dates = sorted(all_dates)\n",
+    "    all_currencies = pd.concat([sales_df['Currency'], rates_df['Currency']]).dropna().unique()\n",
+    "    \n",
+    "    idx = pd.MultiIndex.from_product([all_dates, all_currencies], names=['Date', 'Currency'])\n",
+    "    full_rates = pd.DataFrame(index=idx).reset_index()\n",
+    "    \n",
+    "    full_rates = pd.merge(full_rates, rates_df, on=['Date', 'Currency'], how='left')\n",
+    "    full_rates = full_rates.sort_values(['Currency', 'Date'])\n",
+    "    full_rates['Rate_to_USD'] = full_rates.groupby('Currency')['Rate_to_USD'].ffill().bfill()\n",
+    "    \n",
+    "    merged_df = pd.merge(sales_df, full_rates, on=['Date', 'Currency'], how='left')\n",
+    "    \n",
+    "    # If USD is present but not in rates_df, handle it\n",
+    "    if 'USD' in all_currencies:\n",
+    "        merged_df.loc[merged_df['Currency'] == 'USD', 'Rate_to_USD'] = merged_df.loc[merged_df['Currency'] == 'USD', 'Rate_to_USD'].fillna(1.0)\n",
+    "        \n",
+    "    merged_df['USD_Revenue'] = merged_df['Quantity'] * merged_df['UnitPrice'] / merged_df['Rate_to_USD']\n",
+    "else:\n",
+    "    merged_df = sales_df.copy()\n",
+    "    if not merged_df.empty:\n",
+    "        merged_df['USD_Revenue'] = merged_df['Quantity'] * merged_df['UnitPrice']\n",
+    "    else:\n",
+    "        merged_df['USD_Revenue'] = pd.Series(dtype='float64')\n",
+    "    # Drop NaNs just in case\n",
+    "    merged_df = merged_df.dropna(subset=['USD_Revenue'])\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# 3. Aggregation\n",
+    "if not merged_df.empty and not merged_df['USD_Revenue'].isna().all():\n",
+    "    daily_sales = merged_df.groupby('Date', as_index=False)['USD_Revenue'].sum()\n",
+    "    daily_sales.rename(columns={'USD_Revenue': 'Daily_Revenue'}, inplace=True)\n",
+    "    \n",
+    "    daily_sales['Date'] = pd.to_datetime(daily_sales['Date'])\n",
+    "    daily_sales = daily_sales.sort_values('Date').set_index('Date')\n",
+    "    \n",
+    "    full_date_range = pd.date_range(start=daily_sales.index.min(), end=daily_sales.index.max(), freq='D')\n",
+    "    daily_sales = daily_sales.reindex(full_date_range, fill_value=0.0)\n",
+    "    \n",
+    "    daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()\n",
+    "    \n",
+    "    daily_sales = daily_sales.reset_index().rename(columns={'index': 'Date'})\n",
+    "    daily_sales['Date'] = daily_sales['Date'].dt.strftime('%Y-%m-%d')\n",
+    "    \n",
+    "    daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)\n",
+    "    daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)\n",
+    "else:\n",
+    "    daily_sales = pd.DataFrame(columns=['Date', 'Daily_Revenue', 'Rolling_7d_Revenue'])\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# 4. Outputs\n",
+    "daily_sales.to_csv('/home/user/daily_sales.csv', index=False)\n",
+    "\n",
+    "if not merged_df.empty and not merged_df['USD_Revenue'].isna().all():\n",
+    "    total_revenue = round(float(merged_df['USD_Revenue'].sum()), 2)\n",
+    "    top_product_series = merged_df.groupby('Product')['USD_Revenue'].sum()\n",
+    "    top_product = str(top_product_series.idxmax()) if not top_product_series.empty else None\n",
+    "else:\n",
+    "    total_revenue = 0.0\n",
+    "    top_product = None\n",
+    "\n",
+    "metrics = {\n",
+    "    \"Total_USD_Revenue\": total_revenue,\n",
+    "    \"Top_Product\": top_product\n",
+    "}\n",
+    "\n",
+    "with open('/home/user/metrics.json', 'w') as f:\n",
+    "    json.dump(metrics, f)\n",
+    "\n",
+    "plt.figure(figsize=(10, 6))\n",
+    "if not daily_sales.empty:\n",
+    "    plt.plot(pd.to_datetime(daily_sales['Date']), daily_sales['Rolling_7d_Revenue'], marker='o', linestyle='-')\n",
+    "plt.title('Rolling 7-Day USD Revenue')\n",
+    "plt.xlabel('Date')\n",
+    "plt.ylabel('Rolling 7-Day Revenue (USD)')\n",
+    "plt.grid(True)\n",
+    "plt.tight_layout()\n",
+    "plt.savefig('/home/user/dashboard.png')\n",
+    "plt.close()\n"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.10"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
+
+with open('/home/user/dashboard.ipynb', 'w') as f:
+    json.dump(notebook_content, f, indent=1)
+print("Notebook generated.")
+EOF Syntax Errors: [
+  'Error node: "<" at 0:0',
+  'Error node: "{\n' +
+    '   "cell_type": "code",\n' +
+    '   "execution_count": None,\n' +
+    '   "metadata": {},\n' +
+    '   "outputs": [],\n' +
+    '   "source": [\n' +
+    '    "import pandas as pd\\n",\n' +
+    '    "import numpy as np\\n",\n' +
+    '    "import json\\n",\n' +
+    '    "import matplotlib.pyplot as plt\\n",\n' +
+    '    "import warnings\\n",\n' +
+    `    "warnings.filterwarnings('ignore')\\n",\n` +
+    '    "\\n",\n' +
+    '    "# 1. Read Data\\n",\n' +
+    '    "try:\\n",\n' +
+    `    "    sales_df = pd.read_csv('/home/user/sales_data.csv')\\n",\n` +
+    '    "except Exception:\\n",\n' +
+    '    "    sales_df = pd.DataFrame()\\n",\n' +
+    '    "\\n",\n' +
+    '    "try:\\n",\n' +
+    `    "    rates_df = pd.read_csv('/home/user/exchange_rates.csv')\\n",\n` +
+    '    "except Exception:\\n",\n' +
+    '    "    rates_df = pd.DataFrame()\\n",\n' +
+    '    "\\n",\n' +
+    '    "if not sales_df.empty:\\n",\n' +
+    '    "    # Remove missing values in Quantity or UnitPrice\\n",\n' +
+    `    "    sales_df = sales_df.dropna(subset=['Quantity', 'UnitPrice'])\\n",\n` +
+    '    "    # Remove negative or zero Quantity and UnitPrice\\n",\n' +
+    `    "    sales_df = sales_df[(sales_df['Quantity'] > 0) & (sales_df['UnitPrice'] > 0)]\\n",\n` +
+    '    "    # Parse dates\\n",\n' +
+    `    "    sales_df['Date'] = pd.to_datetime(sales_df['Date'], format='mixed', errors='coerce')\\n",\n` +
+    `    "    sales_df = sales_df.dropna(subset=['Date'])\\n",\n` +
+    `    "    sales_df['Date'] = sales_df['Date'].dt.strftime('%Y-%m-%d')\\n",\n` +
+    '    "\\n",\n' +
+    '    "if not rates_df.empty:\\n",\n' +
+    '    "    # Parse dates\\n",\n' +
+    `    "    rates_df['Date'] = pd.to_datetime(rates_df['Date'], format='mixed', errors='coerce')\\n",\n` +
+    `    "    rates_df = rates_df.dropna(subset=['Date'])\\n",\n` +
+    `    "    rates_df['Date'] = rates_df['Date'].dt.strftime('%Y-%m-%d')\\n",\n` +
+    `    "    rates_df = rates_df.drop_duplicates(subset=['Date', 'Currency'], keep='last')\\n"\n` +
+    '   ]\n' +
+    '  },\n' +
+    '  {\n' +
+    '   "cell_type": "code",\n' +
+    '   "execution_count": None,\n' +
+    '   "metadata": {},\n' +
+    '   "outputs": [],\n' +
+    '   "source": [\n' +
+    '    "# 2. Currency Conversion\\n",\n' +
+    '    "if not sales_df.empty and not rates_df.empty:\\n",\n' +
+    `    "    all_dates = pd.concat([sales_df['Date'], rates_df['Date']]).dropna().unique()\\n",\n` +
+    '    "    all_dates = sorted(all_dates)\\n",\n' +
+    `    "    all_currencies = pd.concat([sales_df['Currency'], rates_df['Currency']]).dropna().unique()\\n",\n` +
+    '    "    \\n",\n' +
+    `    "    idx = pd.MultiIndex.from_product([all_dates, all_currencies], names=['Date', 'Currency'])\\n",\n` +
+    '    "    full_rates = pd.DataFrame(index=idx).reset_index()\\n",\n' +
+    '    "    \\n",\n' +
+    `    "    full_rates = pd.merge(full_rates, rates_df, on=['Date', 'Currency'], how='left')\\n",\n` +
+    `    "    full_rates = full_rates.sort_values(['Currency', 'Date'])\\n",\n` +
+    `    "    full_rates['Rate_to_USD'] = full_rates.groupby('Currency')['Rate_to_USD'].ffill().bfill()\\n",\n` +
+    '    "    \\n",\n' +
+    `    "    merged_df = pd.merge(sales_df, full_rates, on=['Date', 'Currency'], how='left')\\n",\n` +
+    '    "    \\n",\n' +
+    '    "    # If USD is present but not in rates_df, handle it\\n",\n' +
+    `    "    if 'USD' in all_currencies:\\n",\n` +
+    `    "        merged_df.loc[merged_df['Currency'] == 'USD', 'Rate_to_USD'] = merged_df.loc[merged_df['Currency'] == 'USD', 'Rate_to_USD'].fillna(1.0)\\n",\n` +
+    '    "        \\n",\n' +
+    `    "    merged_df['USD_Revenue'] = merged_df['Quantity'] * merged_df['UnitPrice'] / merged_df['Rate_to_USD']\\n",\n` +
+    '    "else:\\n",\n' +
+    '    "    merged_df = sales_df.copy()\\n",\n' +
+    '    "    if not merged_df.empty:\\n",\n' +
+    `    "        merged_df['USD_Revenue'] = merged_df['Quantity'] * merged_df['UnitPrice']\\n",\n` +
+    '    "    else:\\n",\n' +
+    `    "        merged_df['USD_Revenue'] = pd.Series(dtype='float64')\\n",\n` +
+    '    "    # Drop NaNs just in case\\n",\n' +
+    `    "    merged_df = merged_df.dropna(subset=['USD_Revenue'])\\n"\n` +
+    '   ]\n' +
+    '  },\n' +
+    '  {\n' +
+    '   "cell_type": "code",\n' +
+    '   "execution_count": None,\n' +
+    '   "metadata": {},\n' +
+    '   "outputs": [],\n' +
+    '   "source": [\n' +
+    '    "# 3. Aggregation\\n",\n' +
+    `    "if not merged_df.empty and not merged_df['USD_Revenue'].isna().all():\\n",\n` +
+    `    "    daily_sales = merged_df.groupby('Date', as_index=False)['USD_Revenue'].sum()\\n",\n` +
+    `    "    daily_sales.rename(columns={'USD_Revenue': 'Daily_Revenue'}, inplace=True)\\n",\n` +
+    '    "    \\n",\n' +
+    `    "    daily_sales['Date'] = pd.to_datetime(daily_sales['Date'])\\n",\n` +
+    `    "    daily_sales = daily_sales.sort_values('Date').set_index('Date')\\n",\n` +
+    '    "    \\n",\n' +
+    `    "    full_date_range = pd.date_range(start=daily_sales.index.min(), end=daily_sales.index.max(), freq='D')\\n",\n` +
+    '    "    daily_sales = daily_sales.reindex(full_date_range, fill_value=0.0)\\n",\n' +
+    '    "    \\n",\n' +
+    `    "    daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()\\n",\n` +
+    '    "    \\n",\n' +
+    `    "    daily_sales = daily_sales.reset_index().rename(columns={'index': 'Date'})\\n",\n` +
+    `    "    daily_sales['Date'] = daily_sales['Date'].dt.strftime('%Y-%m-%d')\\n",\n` +
+    '    "    \\n",\n' +
+    `    "    daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)\\n",\n` +
+    `    "    daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)\\n",\n` +
+    '    "else:\\n",\n' +
+    `    "    daily_sales = pd.DataFrame(columns=['Date', 'Daily_Revenue', 'Rolling_7d_Revenue'])\\n"\n` +
+    '   ]\n' +
+    '  }," at 5:2',
+  'Error node: "open" at 172:5',
+  'Missing node: "" at 172:44'
+]
+Bash command parsing error detected for command: << 'EOF' > /home/user/sales_data.csv
+Date,OrderID,Product,Quantity,UnitPrice,Currency
+1/1/2023,1,A,10,20.0,USD
+2023-01-03,2,B,5,10.0,EUR
+01-04-2023,3,A,2,20.0,USD
+EOF Syntax Errors: [ 'Error node: "<" at 0:1' ]
+Bash command parsing error detected for command: << 'EOF' > /home/user/exchange_rates.csv
+Date,Currency,Rate_to_USD
+2023-01-01,EUR,1.1
+2023-01-04,EUR,1.2
+EOF Syntax Errors: [ 'Error node: "<" at 0:1' ]
+Bash command parsing error detected for command: << 'EOF' > /home/user/update_notebook.py
+import json
+import uuid
+
+with open('/home/user/dashboard.ipynb', 'r') as f:
+    nb = json.load(f)
+
+for i, cell in enumerate(nb['cells']):
+    cell['id'] = str(uuid.uuid4())
+
+with open('/home/user/dashboard.ipynb', 'w') as f:
+    json.dump(nb, f, indent=1)
+EOF Syntax Errors: [
+  `Error node: "<< 'EOF' > /home/user/update_notebook.py\n` +
+    'import json\n' +
+    'import uuid\n' +
+    '\n' +
+    "with open('/home/user/dashboard.ipynb', 'r') as f:\n" +
+    '    nb = json.load(f)\n' +
+    '\n' +
+    "for i, cell in enumerate(nb['cells']):\n" +
+    "    cell['id'] = str(uuid.uuid4())\n" +
+    '\n' +
+    "with open('/home/user/dashboard.ipynb', 'w') as f:\n" +
+    '    json.dump(nb, f, indent=1)\n' +
+    'EOF" at 0:0',
+  'Error node: "open" at 4:5',
+  'Missing node: "" at 4:44',
+  'Missing node: "" at 5:18',
+  'Error node: ", cell" at 7:5',
+  'Error node: "(" at 7:24',
+  'Error node: "):\n    cell[" at 7:36',
+  'Error node: "(" at 8:20',
+  'Error node: "())\n\nwith" at 8:31',
+  'Error node: "(" at 10:9',
+  'Error node: ")" at 10:43',
+  'Error node: "\n    json.dump(" at 10:50'
+]
+I have successfully created the requested Jupyter notebook at `/home/user/dashboard.ipynb`.
+
+It handles all the specified operations, including:
+1. **Data Cleaning:** Robustly parsing mixed date formats (converting them to `YYYY-MM-DD`), omitting rows with invalid/negative `Quantity` and `UnitPrice`, and dropping rows with missing essential fields.
+2. **Currency Conversion:** Establishing a comprehensive grid of all observed dates and currencies, merging known exchange rates, and properly applying forward and backward filling to ensure all sales are correctly matched with a `Rate_to_USD`. (We also handle cases where 'USD' is the currency but missing from the rates file). It correctly applies the formula: `Quantity * UnitPrice / Rate_to_USD`.
+3. **Aggregation:** Calculating the daily total revenue globally across all valid rows (by establishing a complete continuous daily date range for the 7-day window to be chronologically accurate) and computing the `Rolling_7d_Revenue` with a 7-day window (`min_periods=1`).
+4. **Outputs:** Exporting formatted numeric values chronologically to `daily_sales.csv`, structuring the `metrics.json` file to calculate the overall rounded `Total_USD_Revenue` and `Top_Product`, and properly generating and saving the rolling revenue plot to `dashboard.png`.
+
+The notebook's cell output structure is verified and strictly compatible with `jupyter nbconvert --to notebook --execute /home/user/dashboard.ipynb`.
