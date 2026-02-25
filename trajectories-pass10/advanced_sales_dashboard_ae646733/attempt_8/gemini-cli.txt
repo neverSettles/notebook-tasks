@@ -1,0 +1,544 @@
+YOLO mode is enabled. All tool calls will be automatically approved.
+YOLO mode is enabled. All tool calls will be automatically approved.
+Bash command parsing error detected for command: << 'EOF' > /home/user/make_ipynb.py
+import json
+
+code = """import pandas as pd
+import matplotlib.pyplot as plt
+import json
+import numpy as np
+
+# %%
+# Load data
+sales_data = pd.read_csv('/home/user/sales_data.csv')
+exchange_rates = pd.read_csv('/home/user/exchange_rates.csv')
+
+# %%
+# 1. Data Cleaning
+try:
+    sales_data['Date'] = pd.to_datetime(sales_data['Date'], format='mixed').dt.normalize()
+    exchange_rates['Date'] = pd.to_datetime(exchange_rates['Date'], format='mixed').dt.normalize()
+except Exception:
+    sales_data['Date'] = pd.to_datetime(sales_data['Date']).dt.normalize()
+    exchange_rates['Date'] = pd.to_datetime(exchange_rates['Date']).dt.normalize()
+
+sales_data = sales_data.dropna(subset=['Quantity', 'UnitPrice'])
+sales_data = sales_data[(sales_data['Quantity'] > 0) & (sales_data['UnitPrice'] > 0)]
+
+# %%
+# 2. Currency Conversion
+all_dates = pd.concat([sales_data['Date'], exchange_rates['Date']]).drop_duplicates().sort_values()
+currencies = pd.concat([sales_data['Currency'], exchange_rates['Currency']]).dropna().unique()
+
+idx = pd.MultiIndex.from_product([all_dates, currencies], names=['Date', 'Currency'])
+grid = pd.DataFrame(index=idx).reset_index()
+
+rates_full = pd.merge(grid, exchange_rates, on=['Date', 'Currency'], how='left')
+rates_full = rates_full.sort_values('Date')
+rates_full['Rate_to_USD'] = rates_full.groupby('Currency')['Rate_to_USD'].transform(lambda x: x.ffill().bfill())
+
+sales_merged = pd.merge(sales_data, rates_full, on=['Date', 'Currency'], how='left')
+sales_merged['USD_Revenue'] = sales_merged['Quantity'] * sales_merged['UnitPrice'] / sales_merged['Rate_to_USD']
+
+# %%
+# 3. Aggregation
+daily_sales = sales_merged.groupby('Date')['USD_Revenue'].sum().reset_index()
+daily_sales = daily_sales.rename(columns={'USD_Revenue': 'Daily_Revenue'})
+daily_sales = daily_sales.sort_values('Date')
+
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()
+
+daily_sales['Date'] = daily_sales['Date'].dt.strftime('%Y-%m-%d')
+daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)
+
+# %%
+# 4. Outputs
+daily_sales.to_csv('/home/user/daily_sales.csv', index=False)
+
+total_revenue = round(sales_merged['USD_Revenue'].sum(), 2)
+product_revenue = sales_merged.groupby('Product')['USD_Revenue'].sum()
+top_product = str(product_revenue.idxmax())
+
+metrics = {
+    'Total_USD_Revenue': float(total_revenue),
+    'Top_Product': top_product
+}
+with open('/home/user/metrics.json', 'w') as f:
+    json.dump(metrics, f, indent=4)
+
+plt.figure(figsize=(10, 6))
+plot_dates = pd.to_datetime(daily_sales['Date'])
+plt.plot(plot_dates, daily_sales['Rolling_7d_Revenue'], marker='o', linestyle='-', color='b', label='Rolling 7-day Avg')
+plt.title('7-Day Rolling USD Revenue')
+plt.xlabel('Date')
+plt.ylabel('USD Revenue')
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.savefig('/home/user/dashboard.png')
+"""
+
+cells = []
+for block in code.split('# %%'):
+    if not block.strip():
+        continue
+    lines = [line + '\n' for line in block.strip('\n').split('\n')]
+    if lines:
+        lines[-1] = lines[-1][:-1]
+        
+    cells.append({
+        "cell_type": "code",
+        "execution_count": None,
+        "metadata": {},
+        "outputs": [],
+        "source": lines
+    })
+
+notebook = {
+    "cells": cells,
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3",
+            "language": "python",
+            "name": "python3"
+        },
+        "language_info": {
+            "codemirror_mode": {"name": "ipython", "version": 3},
+            "file_extension": ".py",
+            "mimetype": "text/x-python",
+            "name": "python",
+            "nbconvert_exporter": "python",
+            "pygments_lexer": "ipython3",
+            "version": "3.8.0"
+        }
+    },
+    "nbformat": 4,
+    "nbformat_minor": 4
+}
+
+with open('/home/user/dashboard.ipynb', 'w') as f:
+    json.dump(notebook, f, indent=2)
+EOF Syntax Errors: [
+  `Error node: "<< 'EOF' > /home/user/make_ipynb.py\n` +
+    'import json\n' +
+    '\n' +
+    'code = """import pandas as pd\n' +
+    'import matplotlib.pyplot as plt\n' +
+    'import json\n' +
+    'import numpy as np\n' +
+    '\n' +
+    '# %%\n' +
+    '# Load data\n' +
+    "sales_data = pd.read_csv('/home/user/sales_data.csv')\n" +
+    "exchange_rates = pd.read_csv('/home/user/exchange_rates.csv')\n" +
+    '\n' +
+    '# %%\n' +
+    '# 1. Data Cleaning\n' +
+    'try:\n' +
+    "    sales_data['Date'] = pd.to_datetime(sales_data['Date'], format='mixed').dt.normalize()\n" +
+    "    exchange_rates['Date'] = pd.to_datetime(exchange_rates['Date'], format='mixed').dt.normalize()\n" +
+    'except Exception:\n' +
+    "    sales_data['Date'] = pd.to_datetime(sales_data['Date']).dt.normalize()\n" +
+    "    exchange_rates['Date'] = pd.to_datetime(exchange_rates['Date']).dt.normalize()\n" +
+    '\n' +
+    "sales_data = sales_data.dropna(subset=['Quantity', 'UnitPrice'])\n" +
+    "sales_data = sales_data[(sales_data['Quantity'] > 0) & (sales_data['UnitPrice'] > 0)]\n" +
+    '\n' +
+    '# %%\n' +
+    '# 2. Currency Conversion\n' +
+    "all_dates = pd.concat([sales_data['Date'], exchange_rates['Date']]).drop_duplicates().sort_values()\n" +
+    "currencies = pd.concat([sales_data['Currency'], exchange_rates['Currency']]).dropna().unique()\n" +
+    '\n' +
+    "idx = pd.MultiIndex.from_product([all_dates, currencies], names=['Date', 'Currency'])\n" +
+    'grid = pd.DataFrame(index=idx).reset_index()\n' +
+    '\n' +
+    "rates_full = pd.merge(grid, exchange_rates, on=['Date', 'Currency'], how='left')\n" +
+    "rates_full = rates_full.sort_values('Date')\n" +
+    "rates_full['Rate_to_USD'] = rates_full.groupby('Currency')['Rate_to_USD'].transform(lambda x: x.ffill().bfill())\n" +
+    '\n' +
+    "sales_merged = pd.merge(sales_data, rates_full, on=['Date', 'Currency'], how='left')\n" +
+    "sales_merged['USD_Revenue'] = sales_merged['Quantity'] * sales_merged['UnitPrice'] / sales_merged['Rate_to_USD']\n" +
+    '\n' +
+    '# %%\n' +
+    '# 3. Aggregation\n' +
+    "daily_sales = sales_merged.groupby('Date')['USD_Revenue'].sum().reset_index()\n" +
+    "daily_sales = daily_sales.rename(columns={'USD_Revenue': 'Daily_Revenue'})\n" +
+    "daily_sales = daily_sales.sort_values('Date')\n" +
+    '\n' +
+    "daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()\n" +
+    '\n' +
+    "daily_sales['Date'] = daily_sales['Date'].dt.strftime('%Y-%m-%d')\n" +
+    "daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)\n" +
+    "daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)\n" +
+    '\n' +
+    '# %%\n' +
+    '# 4. Outputs\n' +
+    "daily_sales.to_csv('/home/user/daily_sales.csv', index=False)\n" +
+    '\n' +
+    "total_revenue = round(sales_merged['USD_Revenue'].sum(), 2)\n" +
+    "product_revenue = sales_merged.groupby('Product')['USD_Revenue'].sum()\n" +
+    'top_product = str(product_revenue.idxmax())\n' +
+    '\n' +
+    'metrics = {\n' +
+    "    'Total_USD_Revenue': float(total_revenue),\n" +
+    "    'Top_Product': top_product\n" +
+    '}\n' +
+    "with open('/home/user/metrics.json', 'w') as f:\n" +
+    '    json.dump(metrics, f, indent=4)\n' +
+    '\n' +
+    'plt.figure(figsize=(10, 6))\n' +
+    "plot_dates = pd.to_datetime(daily_sales['Date'])\n" +
+    "plt.plot(plot_dates, daily_sales['Rolling_7d_Revenue'], marker='o', linestyle='-', color='b', label='Rolling 7-day Avg')\n" +
+    "plt.title('7-Day Rolling USD Revenue')\n" +
+    "plt.xlabel('Date')\n" +
+    "plt.ylabel('USD Revenue')\n" +
+    'plt.grid(True)\n' +
+    'plt.legend()\n' +
+    'plt.tight_layout()\n' +
+    "plt.savefig('/home/user/dashboard.png')\n" +
+    '"""\n' +
+    '\n' +
+    'cells = []\n' +
+    "for block in code.split('# %%'):\n" +
+    '    if not block.strip():\n' +
+    '        continue\n' +
+    "    lines = [line + '\\n' for line in block.strip('\\n').split('\\n')]\n" +
+    '    if lines:\n' +
+    '        lines[-1] = lines[-1][:-1]\n' +
+    '        \n' +
+    '    cells.append({\n' +
+    '        "cell_type": "code",\n' +
+    '        "execution_count": None,\n' +
+    '        "metadata": {},\n' +
+    '        "outputs": [],\n' +
+    '        "source": lines\n' +
+    '    })\n' +
+    '\n' +
+    'notebook = {\n' +
+    '    "cells": cells,\n' +
+    '    "metadata": {\n' +
+    '        "kernelspec": {\n' +
+    '            "display_name": "Python 3",\n' +
+    '            "language": "python",\n' +
+    '            "name": "python3"\n' +
+    '        },\n' +
+    '        "language_info": {\n' +
+    '            "codemirror_mode": {"name": "ipython", "version": 3},\n' +
+    '            "file_extension": ".py",\n' +
+    '            "mimetype": "text/x-python",\n' +
+    '            "name": "python",\n' +
+    '            "nbconvert_exporter": "python",\n' +
+    '            "pygments_lexer": "ipython3",\n' +
+    '            "version": "3.8.0"\n' +
+    '        }\n' +
+    '    },\n' +
+    '    "nbformat": 4,\n' +
+    '    "nbformat_minor": 4\n' +
+    '}\n' +
+    '\n' +
+    "with open('/home/user/dashboard.ipynb', 'w') as f:\n" +
+    '    json.dump(notebook, f, indent=2)\n' +
+    'EOF" at 0:0',
+  `Error node: "for block in code.split('# %%'):" at 80:0`,
+  'Error node: "():" at 81:22',
+  'Missing node: "" at 83:48',
+  'Missing node: "" at 83:54',
+  `Error node: ".split('\\n')]" at 83:54`,
+  'Error node: "lines[-1]" at 85:20',
+  'Error node: "open" at 117:5',
+  'Missing node: "" at 117:44'
+]
+Bash command parsing error detected for command: << 'EOF' > /home/user/sales_data.csv
+Date,OrderID,Product,Quantity,UnitPrice,Currency
+2023-01-01,1,Widget A,10,10.0,EUR
+01/02/2023,2,Widget B,5,20.0,GBP
+2023-01-03,3,Widget A,-2,10.0,EUR
+Jan 4th 2023,4,Widget C,1,50.0,JPY
+EOF Syntax Errors: [ 'Error node: "<" at 0:1' ]
+Bash command parsing error detected for command: << 'EOF' > /home/user/exchange_rates.csv
+Date,Currency,Rate_to_USD
+2023-01-01,EUR,0.9
+2023-01-01,GBP,0.8
+2023-01-03,EUR,0.92
+2023-01-03,GBP,0.81
+2023-01-05,JPY,130.0
+EOF Syntax Errors: [ 'Error node: "<" at 0:1' ]
+missing pgrep output
+Bash command parsing error detected for command: << 'EOF' > /home/user/sales_data.csv
+Date,OrderID,Product,Quantity,UnitPrice,Currency
+2023-01-01,1,Widget A,10,10.0,EUR
+01/02/2023,2,Widget B,5,20.0,GBP
+2023-01-03,3,Widget A,-2,10.0,EUR
+Jan 4th 2023,4,Widget C,1,50.0,JPY
+EOF Syntax Errors: [ 'Error node: "<" at 0:1' ]
+Bash command parsing error detected for command: << 'EOF' > /home/user/exchange_rates.csv
+Date,Currency,Rate_to_USD
+2023-01-01,EUR,0.9
+2023-01-01,GBP,0.8
+2023-01-03,EUR,0.92
+2023-01-03,GBP,0.81
+2023-01-05,JPY,130.0
+EOF Syntax Errors: [ 'Error node: "<" at 0:1' ]
+missing pgrep output
+Bash command parsing error detected for command: << 'EOF' > /home/user/make_ipynb.py
+import json
+
+code = """import pandas as pd
+import matplotlib.pyplot as plt
+import json
+import numpy as np
+
+# %%
+# Load data
+sales_data = pd.read_csv('/home/user/sales_data.csv')
+exchange_rates = pd.read_csv('/home/user/exchange_rates.csv')
+
+# %%
+# 1. Data Cleaning
+try:
+    sales_data['Date'] = pd.to_datetime(sales_data['Date'], format='mixed').dt.normalize()
+    exchange_rates['Date'] = pd.to_datetime(exchange_rates['Date'], format='mixed').dt.normalize()
+except Exception:
+    sales_data['Date'] = pd.to_datetime(sales_data['Date']).dt.normalize()
+    exchange_rates['Date'] = pd.to_datetime(exchange_rates['Date']).dt.normalize()
+
+sales_data = sales_data.dropna(subset=['Quantity', 'UnitPrice'])
+sales_data = sales_data[(sales_data['Quantity'] > 0) & (sales_data['UnitPrice'] > 0)]
+
+# %%
+# 2. Currency Conversion
+all_dates = pd.concat([sales_data['Date'], exchange_rates['Date']]).drop_duplicates().sort_values()
+currencies = pd.concat([sales_data['Currency'], exchange_rates['Currency']]).dropna().unique()
+
+idx = pd.MultiIndex.from_product([all_dates, currencies], names=['Date', 'Currency'])
+grid = pd.DataFrame(index=idx).reset_index()
+
+rates_full = pd.merge(grid, exchange_rates, on=['Date', 'Currency'], how='left')
+rates_full = rates_full.sort_values('Date')
+rates_full['Rate_to_USD'] = rates_full.groupby('Currency')['Rate_to_USD'].transform(lambda x: x.ffill().bfill())
+
+sales_merged = pd.merge(sales_data, rates_full, on=['Date', 'Currency'], how='left')
+sales_merged['USD_Revenue'] = sales_merged['Quantity'] * sales_merged['UnitPrice'] / sales_merged['Rate_to_USD']
+
+# %%
+# 3. Aggregation
+daily_sales = sales_merged.groupby('Date')['USD_Revenue'].sum().reset_index()
+daily_sales = daily_sales.rename(columns={'USD_Revenue': 'Daily_Revenue'})
+
+if not daily_sales.empty:
+    min_date = daily_sales['Date'].min()
+    max_date = daily_sales['Date'].max()
+    full_date_range = pd.date_range(start=min_date, end=max_date)
+    daily_sales = daily_sales.set_index('Date').reindex(full_date_range, fill_value=0.0).rename_axis('Date').reset_index()
+
+daily_sales = daily_sales.sort_values('Date')
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()
+
+daily_sales['Date'] = daily_sales['Date'].dt.strftime('%Y-%m-%d')
+daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)
+
+# %%
+# 4. Outputs
+daily_sales.to_csv('/home/user/daily_sales.csv', index=False)
+
+total_revenue = round(sales_merged['USD_Revenue'].sum(), 2)
+product_revenue = sales_merged.groupby('Product')['USD_Revenue'].sum()
+top_product = str(product_revenue.idxmax())
+
+metrics = {
+    'Total_USD_Revenue': float(total_revenue),
+    'Top_Product': top_product
+}
+with open('/home/user/metrics.json', 'w') as f:
+    json.dump(metrics, f, indent=4)
+
+plt.figure(figsize=(10, 6))
+plot_dates = pd.to_datetime(daily_sales['Date'])
+plt.plot(plot_dates, daily_sales['Rolling_7d_Revenue'], marker='o', linestyle='-', color='b', label='Rolling 7-day Avg')
+plt.title('7-Day Rolling USD Revenue')
+plt.xlabel('Date')
+plt.ylabel('USD Revenue')
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.savefig('/home/user/dashboard.png')
+"""
+
+cells = []
+for block in code.split('# %%'):
+    if not block.strip():
+        continue
+    lines = [line + '\n' for line in block.strip('\n').split('\n')]
+    if lines:
+        lines[-1] = lines[-1][:-1]
+        
+    cells.append({
+        "cell_type": "code",
+        "execution_count": None,
+        "metadata": {},
+        "outputs": [],
+        "source": lines
+    })
+
+notebook = {
+    "cells": cells,
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3",
+            "language": "python",
+            "name": "python3"
+        },
+        "language_info": {
+            "codemirror_mode": {"name": "ipython", "version": 3},
+            "file_extension": ".py",
+            "mimetype": "text/x-python",
+            "name": "python",
+            "nbconvert_exporter": "python",
+            "pygments_lexer": "ipython3",
+            "version": "3.8.0"
+        }
+    },
+    "nbformat": 4,
+    "nbformat_minor": 4
+}
+
+with open('/home/user/dashboard.ipynb', 'w') as f:
+    json.dump(notebook, f, indent=2)
+EOF Syntax Errors: [
+  `Error node: "<< 'EOF' > /home/user/make_ipynb.py\n` +
+    'import json\n' +
+    '\n' +
+    'code = """import pandas as pd\n' +
+    'import matplotlib.pyplot as plt\n' +
+    'import json\n' +
+    'import numpy as np\n' +
+    '\n' +
+    '# %%\n' +
+    '# Load data\n' +
+    "sales_data = pd.read_csv('/home/user/sales_data.csv')\n" +
+    "exchange_rates = pd.read_csv('/home/user/exchange_rates.csv')\n" +
+    '\n' +
+    '# %%\n' +
+    '# 1. Data Cleaning\n' +
+    'try:\n' +
+    "    sales_data['Date'] = pd.to_datetime(sales_data['Date'], format='mixed').dt.normalize()\n" +
+    "    exchange_rates['Date'] = pd.to_datetime(exchange_rates['Date'], format='mixed').dt.normalize()\n" +
+    'except Exception:\n' +
+    "    sales_data['Date'] = pd.to_datetime(sales_data['Date']).dt.normalize()\n" +
+    "    exchange_rates['Date'] = pd.to_datetime(exchange_rates['Date']).dt.normalize()\n" +
+    '\n' +
+    "sales_data = sales_data.dropna(subset=['Quantity', 'UnitPrice'])\n" +
+    "sales_data = sales_data[(sales_data['Quantity'] > 0) & (sales_data['UnitPrice'] > 0)]\n" +
+    '\n' +
+    '# %%\n' +
+    '# 2. Currency Conversion\n' +
+    "all_dates = pd.concat([sales_data['Date'], exchange_rates['Date']]).drop_duplicates().sort_values()\n" +
+    "currencies = pd.concat([sales_data['Currency'], exchange_rates['Currency']]).dropna().unique()\n" +
+    '\n' +
+    "idx = pd.MultiIndex.from_product([all_dates, currencies], names=['Date', 'Currency'])\n" +
+    'grid = pd.DataFrame(index=idx).reset_index()\n' +
+    '\n' +
+    "rates_full = pd.merge(grid, exchange_rates, on=['Date', 'Currency'], how='left')\n" +
+    "rates_full = rates_full.sort_values('Date')\n" +
+    "rates_full['Rate_to_USD'] = rates_full.groupby('Currency')['Rate_to_USD'].transform(lambda x: x.ffill().bfill())\n" +
+    '\n' +
+    "sales_merged = pd.merge(sales_data, rates_full, on=['Date', 'Currency'], how='left')\n" +
+    "sales_merged['USD_Revenue'] = sales_merged['Quantity'] * sales_merged['UnitPrice'] / sales_merged['Rate_to_USD']\n" +
+    '\n' +
+    '# %%\n' +
+    '# 3. Aggregation\n' +
+    "daily_sales = sales_merged.groupby('Date')['USD_Revenue'].sum().reset_index()\n" +
+    "daily_sales = daily_sales.rename(columns={'USD_Revenue': 'Daily_Revenue'})\n" +
+    '\n' +
+    'if not daily_sales.empty:\n' +
+    "    min_date = daily_sales['Date'].min()\n" +
+    "    max_date = daily_sales['Date'].max()\n" +
+    '    full_date_range = pd.date_range(start=min_date, end=max_date)\n' +
+    "    daily_sales = daily_sales.set_index('Date').reindex(full_date_range, fill_value=0.0).rename_axis('Date').reset_index()\n" +
+    '\n' +
+    "daily_sales = daily_sales.sort_values('Date')\n" +
+    "daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()\n" +
+    '\n' +
+    "daily_sales['Date'] = daily_sales['Date'].dt.strftime('%Y-%m-%d')\n" +
+    "daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)\n" +
+    "daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)\n" +
+    '\n' +
+    '# %%\n' +
+    '# 4. Outputs\n' +
+    "daily_sales.to_csv('/home/user/daily_sales.csv', index=False)\n" +
+    '\n' +
+    "total_revenue = round(sales_merged['USD_Revenue'].sum(), 2)\n" +
+    "product_revenue = sales_merged.groupby('Product')['USD_Revenue'].sum()\n" +
+    'top_product = str(product_revenue.idxmax())\n' +
+    '\n' +
+    'metrics = {\n' +
+    "    'Total_USD_Revenue': float(total_revenue),\n" +
+    "    'Top_Product': top_product\n" +
+    '}\n' +
+    "with open('/home/user/metrics.json', 'w') as f:\n" +
+    '    json.dump(metrics, f, indent=4)\n' +
+    '\n' +
+    'plt.figure(figsize=(10, 6))\n' +
+    "plot_dates = pd.to_datetime(daily_sales['Date'])\n" +
+    "plt.plot(plot_dates, daily_sales['Rolling_7d_Revenue'], marker='o', linestyle='-', color='b', label='Rolling 7-day Avg')\n" +
+    "plt.title('7-Day Rolling USD Revenue')\n" +
+    "plt.xlabel('Date')\n" +
+    "plt.ylabel('USD Revenue')\n" +
+    'plt.grid(True)\n' +
+    'plt.legend()\n' +
+    'plt.tight_layout()\n' +
+    "plt.savefig('/home/user/dashboard.png')\n" +
+    '"""\n' +
+    '\n' +
+    'cells = []\n' +
+    "for block in code.split('# %%'):\n" +
+    '    if not block.strip():\n' +
+    '        continue\n' +
+    "    lines = [line + '\\n' for line in block.strip('\\n').split('\\n')]\n" +
+    '    if lines:\n' +
+    '        lines[-1] = lines[-1][:-1]\n' +
+    '        \n' +
+    '    cells.append({\n' +
+    '        "cell_type": "code",\n' +
+    '        "execution_count": None,\n' +
+    '        "metadata": {},\n' +
+    '        "outputs": [],\n' +
+    '        "source": lines\n' +
+    '    })\n' +
+    '\n' +
+    'notebook = {\n' +
+    '    "cells": cells,\n' +
+    '    "metadata": {\n' +
+    '        "kernelspec": {\n' +
+    '            "display_name": "Python 3",\n' +
+    '            "language": "python",\n' +
+    '            "name": "python3"\n' +
+    '        },\n' +
+    '        "language_info": {\n' +
+    '            "codemirror_mode": {"name": "ipython", "version": 3},\n' +
+    '            "file_extension": ".py",\n' +
+    '            "mimetype": "text/x-python",\n' +
+    '            "name": "python",\n' +
+    '            "nbconvert_exporter": "python",\n' +
+    '            "pygments_lexer": "ipython3",\n' +
+    '            "version": "3.8.0"\n' +
+    '        }\n' +
+    '    },\n' +
+    '    "nbformat": 4,\n' +
+    '    "nbformat_minor": 4\n' +
+    '}\n' +
+    '\n' +
+    "with open('/home/user/dashboard.ipynb', 'w') as f:\n" +
+    '    json.dump(notebook, f, indent=2)\n' +
+    'EOF" at 0:0',
+  `Error node: "for block in code.split('# %%'):" at 86:0`,
+  'Error node: "():" at 87:22',
+  'Missing node: "" at 89:48',
+  'Missing node: "" at 89:54',
+  `Error node: ".split('\\n')]" at 89:54`,
+  'Error node: "lines[-1]" at 91:20',
+  'Error node: "open" at 123:5',
+  'Missing node: "" at 123:44'
+]
