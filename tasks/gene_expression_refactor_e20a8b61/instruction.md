@@ -17,3 +17,16 @@ Please create a Jupyter notebook at `/home/user/gene_analysis.ipynb` that does t
 - Save this DataFrame to a CSV file at `/home/user/significant_genes.csv` without the index (`index=False`).
 
 The notebook must be executable from start to finish without errors.
+
+
+**Additional Requirement - Differential Expression Analysis:**
+After the basic restructuring:
+1. Calculate the log2 fold-change between the maximum and minimum expression values for each gene.
+2. Save the top 5 genes by absolute fold-change to `/home/user/top_genes.csv` with columns: `gene_id`, `fold_change`, `max_expression`, `min_expression`.
+3. Generate a bar chart of these top 5 genes and save to `/home/user/top_genes_plot.png`.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/gene_analysis.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.

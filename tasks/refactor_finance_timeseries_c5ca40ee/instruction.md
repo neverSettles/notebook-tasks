@@ -9,3 +9,16 @@ Requirements for the notebook:
    - Cell 3: Group by Ticker, calculate the mean 'Price', and save to `/home/user/avg_prices.csv` (without the index).
 
 Execute the notebook to ensure it generates `avg_prices.csv` successfully. Ensure your notebook is valid JSON and runs without errors using `jupyter nbconvert --to notebook --execute /home/user/finance_analysis.ipynb`.
+
+
+**Additional Requirement - Trend Analysis and Visualization:**
+After computing average prices:
+1. Calculate a 2-period moving average of prices for each ticker.
+2. Save a line chart showing raw prices and moving averages per ticker to `/home/user/price_trends.png`.
+3. Save a trend analysis JSON at `/home/user/trend_analysis.json` with one entry per ticker: `{"<ticker>": {"avg_price": <float>, "price_trend": "up"|"down"|"flat", "volatility": <float_std_dev>}}`.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/finance_analysis.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.

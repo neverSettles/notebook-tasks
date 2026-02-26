@@ -45,3 +45,19 @@ def test_output_json_contents():
     assert data["treatment"]["impressions"] == 4, f"Expected 4 treatment impressions, got {data['treatment']['impressions']}"
     assert data["treatment"]["conversions"] == 3, f"Expected 3 treatment conversions, got {data['treatment']['conversions']}"
     assert pytest.approx(data["treatment"]["conversion_rate"], 0.01) == 0.75, f"Expected treatment conversion rate approx 0.75, got {data['treatment']['conversion_rate']}"
+
+
+def test_statistical_test():
+    """Verify that the output JSON contains chi-square test results."""
+    json_path = "/home/user/ab_test_summary.json"
+    if not os.path.exists(json_path):
+        pytest.skip("Output JSON missing.")
+    import json
+    with open(json_path) as f:
+        data = json.load(f)
+    assert "chi_square_statistic" in data, "Missing chi_square_statistic in output JSON"
+    assert "p_value" in data, "Missing p_value in output JSON"
+    assert isinstance(data["chi_square_statistic"], (int, float)), "chi_square_statistic must be numeric"
+    assert isinstance(data["p_value"], (int, float)), "p_value must be numeric"
+    assert 0 <= data["p_value"] <= 1, f"p_value must be between 0 and 1, got {data['p_value']}"
+

@@ -1,0 +1,583 @@
+YOLO mode is enabled. All tool calls will be automatically approved.
+YOLO mode is enabled. All tool calls will be automatically approved.
+Bash command parsing error detected for command: << 'EOF' > /home/user/test.py
+import pandas as pd
+import json
+import matplotlib.pyplot as plt
+
+# 1. Load data
+sales_raw = pd.read_csv('/home/user/sales_data.csv')
+rates_raw = pd.read_csv('/home/user/exchange_rates.csv')
+
+# 2. Parse dates
+sales_raw['Date'] = pd.to_datetime(sales_raw['Date'], format='mixed')
+rates_raw['Date'] = pd.to_datetime(rates_raw['Date'], format='mixed')
+
+# 3. Clean sales data
+sales_cleaned = sales_raw.dropna(subset=['Quantity', 'UnitPrice']).copy()
+sales_cleaned = sales_cleaned[(sales_cleaned['Quantity'] > 0) & (sales_cleaned['UnitPrice'] > 0)]
+
+# 4. Handle exchange rates
+# Find min and max dates
+min_date = min(sales_cleaned['Date'].min(), rates_raw['Date'].min())
+max_date = max(sales_cleaned['Date'].max(), rates_raw['Date'].max())
+all_dates = pd.date_range(start=min_date, end=max_date)
+
+rates_pivot = rates_raw.pivot(index='Date', columns='Currency', values='Rate_to_USD')
+rates_reindexed = rates_pivot.reindex(all_dates)
+rates_filled = rates_reindexed.ffill().bfill()
+rates_melted = rates_filled.reset_index().melt(id_vars='index', value_name='Rate_to_USD').rename(columns={'index': 'Date'})
+
+# 5. Merge and calculate USD Revenue
+merged = pd.merge(sales_cleaned, rates_melted, on=['Date', 'Currency'], how='left')
+
+# Calculating USD Revenue
+merged['USD_Revenue'] = merged['Quantity'] * merged['UnitPrice'] / merged['Rate_to_USD']
+
+# 6. Aggregation
+daily_sales = merged.groupby('Date', as_index=False)['USD_Revenue'].sum()
+daily_sales = daily_sales.rename(columns={'USD_Revenue': 'Daily_Revenue'})
+
+# Sort by Date
+daily_sales = daily_sales.sort_values('Date').reset_index(drop=True)
+
+# Calculate rolling 7-day average
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()
+
+# Round to 2 decimal places
+daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)
+
+# Ensure Date is YYYY-MM-DD
+daily_sales['Date'] = daily_sales['Date'].dt.strftime('%Y-%m-%d')
+
+# Save daily_sales.csv
+daily_sales.to_csv('/home/user/daily_sales.csv', index=False)
+
+# 7. Outputs
+total_revenue = round(merged['USD_Revenue'].sum(), 2)
+# Top Product
+top_product = merged.groupby('Product')['USD_Revenue'].sum().idxmax()
+
+metrics = {
+    "Total_USD_Revenue": float(total_revenue),
+    "Top_Product": top_product
+}
+
+with open('/home/user/metrics.json', 'w') as f:
+    json.dump(metrics, f)
+
+# 8. Plot
+plt.figure(figsize=(10, 6))
+plt.plot(daily_sales['Date'], daily_sales['Rolling_7d_Revenue'], marker='o', linestyle='-')
+plt.title('Rolling 7-Day USD Revenue')
+plt.xlabel('Date')
+plt.ylabel('Rolling 7-Day USD Revenue')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('/home/user/dashboard.png')
+
+print("Script executed successfully.")
+EOF Syntax Errors: [
+  'Error node: "<" at 0:0',
+  'Missing node: "" at 6:23',
+  'Missing node: "" at 7:23',
+  `Error node: "sales_raw['Date']," at 10:35`,
+  `Error node: "rates_raw['Date']," at 11:35`,
+  'Missing node: "" at 14:32',
+  'Missing node: "" at 14:66',
+  'Error node: "()" at 14:71',
+  'Error node: "(" at 15:30',
+  'Error node: ")" at 15:60',
+  `Error node: "sales_cleaned['UnitPrice'] >" at 15:65`,
+  'Missing node: "" at 15:96',
+  'Error node: "(" at 19:14',
+  'Error node: "()," at 19:40',
+  'Error node: "())" at 19:65',
+  'Error node: "(" at 20:14',
+  'Error node: "()," at 20:40',
+  'Error node: "())" at 20:65',
+  'Missing node: "" at 21:25',
+  'Missing node: "" at 23:29',
+  'Missing node: "" at 24:37',
+  'Error node: "()" at 25:36',
+  'Error node: "()" at 25:44',
+  'Error node: "()" at 26:39',
+  'Missing node: "" at 26:46',
+  'Missing node: "" at 26:89',
+  'Missing node: "" at 29:17',
+  `Error node: "merged['Quantity'] * merged['UnitPrice'] /" at 32:24`,
+  'Error node: "daily_sales" at 35:0',
+  'Missing node: "" at 35:52',
+  'Missing node: "" at 35:67',
+  'Error node: "()" at 35:71',
+  'Missing node: "" at 36:32',
+  'Missing node: "" at 39:37',
+  'Missing node: "" at 39:45',
+  `Error node: "daily_sales['Daily_Revenue']" at 42:36`,
+  'Missing node: "" at 42:97',
+  'Error node: "()" at 42:102',
+  `Error node: "daily_sales['Daily_Revenue']" at 45:31`,
+  `Error node: "daily_sales['Rolling_7d_Revenue']" at 46:36`,
+  `Error node: "daily_sales['Date']" at 49:22`,
+  'Error node: "(" at 55:21',
+  'Error node: "()," at 55:47',
+  'Error node: ")\n#" at 55:52',
+  'Missing node: "" at 57:28',
+  `Error node: "('Product')['USD_Revenue'].sum().idxmax()\n` +
+    '\n' +
+    'metrics = {\n' +
+    '    "Total_USD_Revenue": float(total_revenue)," at 57:28',
+  'Error node: ")" at 57:59',
+  'Error node: "()" at 57:67',
+  'Error node: "(" at 60:30',
+  'Error node: "open" at 64:5',
+  'Missing node: "" at 64:41',
+  `Error node: "daily_sales['Date'], daily_sales['Rolling_7d_Revenue']," at 69:9`,
+  'Error node: "plt.savefig" at 75:0'
+]
+Bash command parsing error detected for command: << 'EOF' > /home/user/test.py
+import pandas as pd
+import json
+import matplotlib.pyplot as plt
+
+# 1. Load data
+sales_raw = pd.read_csv('/home/user/sales_data.csv')
+rates_raw = pd.read_csv('/home/user/exchange_rates.csv')
+
+# 2. Parse dates
+sales_raw['Date'] = pd.to_datetime(sales_raw['Date'], format='mixed')
+rates_raw['Date'] = pd.to_datetime(rates_raw['Date'], format='mixed')
+
+# 3. Clean sales data
+sales_cleaned = sales_raw.dropna(subset=['Quantity', 'UnitPrice']).copy()
+sales_cleaned = sales_cleaned[(sales_cleaned['Quantity'] > 0) & (sales_cleaned['UnitPrice'] > 0)]
+
+# 4. Handle exchange rates
+min_date = min(sales_cleaned['Date'].min(), rates_raw['Date'].min())
+max_date = max(sales_cleaned['Date'].max(), rates_raw['Date'].max())
+all_dates = pd.date_range(start=min_date, end=max_date)
+
+rates_pivot = rates_raw.pivot(index='Date', columns='Currency', values='Rate_to_USD')
+rates_reindexed = rates_pivot.reindex(all_dates)
+rates_filled = rates_reindexed.ffill().bfill()
+rates_melted = rates_filled.reset_index().melt(id_vars='index', value_name='Rate_to_USD').rename(columns={'index': 'Date'})
+
+# 5. Merge and calculate USD Revenue
+merged = pd.merge(sales_cleaned, rates_melted, on=['Date', 'Currency'], how='left')
+
+# Calculating USD Revenue
+merged['USD_Revenue'] = merged['Quantity'] * merged['UnitPrice'] / merged['Rate_to_USD']
+
+# 6. Aggregation
+# Calculate daily revenue
+daily_sales = merged.groupby('Date')['USD_Revenue'].sum().reset_index()
+daily_sales = daily_sales.rename(columns={'USD_Revenue': 'Daily_Revenue'})
+
+# Fill missing dates with 0
+sales_date_range = pd.date_range(start=daily_sales['Date'].min(), end=daily_sales['Date'].max())
+daily_sales = daily_sales.set_index('Date').reindex(sales_date_range, fill_value=0.0).reset_index()
+daily_sales = daily_sales.rename(columns={'index': 'Date'})
+
+# Calculate rolling 7-day average
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()
+
+# Round to 2 decimal places
+daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)
+
+# Ensure Date is YYYY-MM-DD
+daily_sales['Date'] = daily_sales['Date'].dt.strftime('%Y-%m-%d')
+
+# Save daily_sales.csv
+daily_sales.to_csv('/home/user/daily_sales.csv', index=False)
+
+# 7. Outputs
+total_revenue = round(merged['USD_Revenue'].sum(), 2)
+# Top Product
+top_product = merged.groupby('Product')['USD_Revenue'].sum().idxmax()
+
+metrics = {
+    "Total_USD_Revenue": float(total_revenue),
+    "Top_Product": top_product
+}
+
+with open('/home/user/metrics.json', 'w') as f:
+    json.dump(metrics, f)
+
+EOF Syntax Errors: [
+  'Error node: "<" at 0:0',
+  'Missing node: "" at 6:23',
+  'Missing node: "" at 7:23',
+  `Error node: "sales_raw['Date']," at 10:35`,
+  `Error node: "rates_raw['Date']," at 11:35`,
+  'Missing node: "" at 14:32',
+  'Missing node: "" at 14:66',
+  'Error node: "()" at 14:71',
+  'Error node: "(" at 15:30',
+  'Error node: ")" at 15:60',
+  `Error node: "sales_cleaned['UnitPrice'] >" at 15:65`,
+  'Missing node: "" at 15:96',
+  'Error node: "(" at 18:14',
+  'Error node: "()," at 18:40',
+  'Error node: "())" at 18:65',
+  'Error node: "(" at 19:14',
+  'Error node: "()," at 19:40',
+  'Error node: "())" at 19:65',
+  'Missing node: "" at 20:25',
+  'Missing node: "" at 22:29',
+  'Missing node: "" at 23:37',
+  'Error node: "()" at 24:36',
+  'Error node: "()" at 24:44',
+  'Error node: "()" at 25:39',
+  'Missing node: "" at 25:46',
+  'Missing node: "" at 25:89',
+  'Missing node: "" at 28:17',
+  `Error node: "merged['Quantity'] * merged['UnitPrice'] /" at 31:24`,
+  'Error node: "daily_sales" at 35:0',
+  'Missing node: "" at 35:36',
+  'Missing node: "" at 35:51',
+  'Error node: ".reset_index" at 35:57',
+  'Error node: ")" at 35:70',
+  'Error node: "(" at 36:32',
+  'Error node: "(" at 39:32',
+  'Error node: "()," at 39:62',
+  'Error node: "())" at 39:93',
+  'Missing node: "" at 40:35',
+  'Missing node: "" at 40:43',
+  'Missing node: "" at 40:85',
+  'Error node: "()" at 40:97',
+  'Missing node: "" at 41:32',
+  `Error node: "daily_sales['Daily_Revenue']" at 44:36`,
+  'Missing node: "" at 44:97',
+  'Error node: "()" at 44:102',
+  `Error node: "daily_sales['Daily_Revenue']" at 47:31`,
+  `Error node: "daily_sales['Rolling_7d_Revenue']" at 48:36`,
+  `Error node: "daily_sales['Date']" at 51:22`,
+  'Error node: "(" at 57:21',
+  'Error node: "()," at 57:47',
+  'Error node: ")\n#" at 57:52',
+  'Missing node: "" at 59:28',
+  `Error node: "('Product')['USD_Revenue'].sum().idxmax()\n` +
+    '\n' +
+    'metrics = {\n' +
+    '    "Total_USD_Revenue": float(total_revenue)," at 59:28',
+  'Error node: ")" at 59:59',
+  'Error node: "()" at 59:67',
+  'Error node: "(" at 62:30',
+  'Error node: "open" at 66:5',
+  'Missing node: "" at 66:41'
+]
+Bash command parsing error detected for command: << 'EOF' > /home/user/create_notebook.py
+import nbformat as nbf
+
+nb = nbf.v4.new_notebook()
+
+code = """
+import pandas as pd
+import json
+import matplotlib.pyplot as plt
+import numpy as np
+
+# 1. Load data
+sales_raw = pd.read_csv('/home/user/sales_data.csv')
+rates_raw = pd.read_csv('/home/user/exchange_rates.csv')
+
+# 2. Parse dates
+sales_raw['Date'] = pd.to_datetime(sales_raw['Date'], format='mixed')
+rates_raw['Date'] = pd.to_datetime(rates_raw['Date'], format='mixed')
+
+# 3. Clean sales data
+sales_cleaned = sales_raw.dropna(subset=['Quantity', 'UnitPrice']).copy()
+sales_cleaned = sales_cleaned[(sales_cleaned['Quantity'] > 0) & (sales_cleaned['UnitPrice'] > 0)]
+
+# 4. Handle exchange rates
+min_date = min(sales_cleaned['Date'].min(), rates_raw['Date'].min())
+max_date = max(sales_cleaned['Date'].max(), rates_raw['Date'].max())
+all_dates = pd.date_range(start=min_date, end=max_date)
+
+rates_pivot = rates_raw.pivot(index='Date', columns='Currency', values='Rate_to_USD')
+rates_reindexed = rates_pivot.reindex(all_dates)
+rates_filled = rates_reindexed.ffill().bfill()
+rates_melted = rates_filled.reset_index().melt(id_vars='index', value_name='Rate_to_USD').rename(columns={'index': 'Date'})
+
+# 5. Merge and calculate USD Revenue
+merged = pd.merge(sales_cleaned, rates_melted, on=['Date', 'Currency'], how='left')
+
+# Calculating USD Revenue
+merged['USD_Revenue'] = merged['Quantity'] * merged['UnitPrice'] / merged['Rate_to_USD']
+
+# 6. Aggregation
+# Calculate daily revenue
+daily_sales = merged.groupby('Date')['USD_Revenue'].sum().reset_index()
+daily_sales = daily_sales.rename(columns={'USD_Revenue': 'Daily_Revenue'})
+
+# Fill missing dates with 0
+sales_date_range = pd.date_range(start=daily_sales['Date'].min(), end=daily_sales['Date'].max())
+daily_sales = daily_sales.set_index('Date').reindex(sales_date_range, fill_value=0.0).reset_index()
+daily_sales = daily_sales.rename(columns={'index': 'Date'})
+
+# Calculate rolling 7-day average
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()
+
+# Round to 2 decimal places
+daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)
+
+# Ensure Date is YYYY-MM-DD
+daily_sales['Date'] = daily_sales['Date'].dt.strftime('%Y-%m-%d')
+
+# Save daily_sales.csv
+daily_sales.to_csv('/home/user/daily_sales.csv', index=False)
+
+# 7. Outputs
+total_revenue = round(merged['USD_Revenue'].sum(), 2)
+# Top Product
+top_product = merged.groupby('Product')['USD_Revenue'].sum().idxmax()
+total_orders = int(merged['OrderID'].nunique())
+
+metrics = {
+    "Total_USD_Revenue": float(total_revenue),
+    "Top_Product": str(top_product),
+    "Total_Orders": total_orders
+}
+
+with open('/home/user/metrics.json', 'w') as f:
+    json.dump(metrics, f)
+
+# 8. Plot
+plt.figure(figsize=(10, 6))
+plt.plot(pd.to_datetime(daily_sales['Date']), daily_sales['Rolling_7d_Revenue'], marker='o', linestyle='-')
+plt.title('Rolling 7-Day USD Revenue')
+plt.xlabel('Date')
+plt.ylabel('Rolling 7-Day USD Revenue')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('/home/user/dashboard.png')
+
+print("Notebook execution completed.")
+"""
+
+nb['cells'] = [nbf.v4.new_code_cell(code)]
+
+with open('/home/user/dashboard.ipynb', 'w') as f:
+    nbf.write(nb, f)
+EOF Syntax Errors: [
+  'Error node: "<" at 0:0',
+  'Error node: "()" at 3:24',
+  'Missing node: "" at 90:41',
+  'Error node: "open" at 92:5',
+  'Missing node: "" at 92:44'
+]
+Bash command parsing error detected for command: << 'EOF' > /home/user/create_notebook.py
+import nbformat as nbf
+
+nb = nbf.v4.new_notebook()
+
+code = """
+import pandas as pd
+import json
+import matplotlib.pyplot as plt
+
+# Load the data
+sales_raw = pd.read_csv('/home/user/sales_data.csv')
+rates_raw = pd.read_csv('/home/user/exchange_rates.csv')
+
+# 1. Parse dates and clean data
+sales_raw['Date'] = pd.to_datetime(sales_raw['Date'], format='mixed')
+rates_raw['Date'] = pd.to_datetime(rates_raw['Date'], format='mixed')
+
+# Filter invalid rows and drop NaNs
+sales_cleaned = sales_raw.dropna(subset=['Quantity', 'UnitPrice']).copy()
+sales_cleaned = sales_cleaned[(sales_cleaned['Quantity'] > 0) & (sales_cleaned['UnitPrice'] > 0)]
+
+# 2. Handle exchange rates
+# Generate a complete date range covering all dates in sales and rates
+min_date = min(sales_cleaned['Date'].min(), rates_raw['Date'].min())
+max_date = max(sales_cleaned['Date'].max(), rates_raw['Date'].max())
+all_dates = pd.date_range(start=min_date, end=max_date)
+
+rates_pivot = rates_raw.pivot(index='Date', columns='Currency', values='Rate_to_USD')
+rates_reindexed = rates_pivot.reindex(all_dates)
+
+# Forward fill missing values, then backward fill for initial missing values
+rates_filled = rates_reindexed.ffill().bfill()
+rates_melted = rates_filled.reset_index().melt(id_vars='index', value_name='Rate_to_USD').rename(columns={'index': 'Date'})
+
+# 3. Currency Conversion
+merged = pd.merge(sales_cleaned, rates_melted, on=['Date', 'Currency'], how='left')
+
+# Calculate USD_Revenue
+merged['USD_Revenue'] = merged['Quantity'] * merged['UnitPrice'] / merged['Rate_to_USD']
+
+# 4. Aggregation
+daily_sales = merged.groupby('Date')['USD_Revenue'].sum().reset_index(name='Daily_Revenue')
+
+# Reindex to ensure we have every calendar day between min and max sales dates
+sales_date_range = pd.date_range(start=daily_sales['Date'].min(), end=daily_sales['Date'].max())
+daily_sales = daily_sales.set_index('Date').reindex(sales_date_range, fill_value=0.0).reset_index()
+daily_sales = daily_sales.rename(columns={'index': 'Date'})
+
+# Calculate rolling 7-day average
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()
+
+# Round columns
+daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)
+
+# Format Date to string
+daily_sales['Date'] = daily_sales['Date'].dt.strftime('%Y-%m-%d')
+
+# Save daily_sales.csv
+daily_sales.to_csv('/home/user/daily_sales.csv', index=False)
+
+# 5. Metrics
+total_revenue = round(merged['USD_Revenue'].sum(), 2)
+top_product = str(merged.groupby('Product')['USD_Revenue'].sum().idxmax())
+total_orders = int(merged['OrderID'].nunique())
+
+metrics = {
+    "Total_USD_Revenue": float(total_revenue),
+    "Top_Product": top_product,
+    "Total_Orders": total_orders
+}
+
+with open('/home/user/metrics.json', 'w') as f:
+    json.dump(metrics, f)
+
+# 6. Plotting
+plt.figure(figsize=(10, 6))
+plt.plot(pd.to_datetime(daily_sales['Date']), daily_sales['Rolling_7d_Revenue'], marker='o', linestyle='-')
+plt.title('Rolling 7-Day USD Revenue')
+plt.xlabel('Date')
+plt.ylabel('Rolling 7-Day USD Revenue')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('/home/user/dashboard.png')
+"""
+
+nb['cells'] = [nbf.v4.new_code_cell(code.strip())]
+
+with open('/home/user/dashboard.ipynb', 'w') as f:
+    nbf.write(nb, f)
+EOF Syntax Errors: [
+  'Error node: "<" at 0:0',
+  'Error node: "()" at 3:24',
+  'Error node: "())]" at 87:46',
+  'Error node: "(" at 89:9',
+  'Missing node: "" at 89:44'
+]
+Bash command parsing error detected for command: << 'EOF' > /home/user/create_notebook.py
+import nbformat as nbf
+
+nb = nbf.v4.new_notebook()
+
+code = """
+import pandas as pd
+import json
+import matplotlib.pyplot as plt
+
+# 1. Load the data
+sales_raw = pd.read_csv('/home/user/sales_data.csv')
+rates_raw = pd.read_csv('/home/user/exchange_rates.csv')
+
+# Parse dates and clean data
+sales_raw['Date'] = pd.to_datetime(sales_raw['Date'], format='mixed')
+rates_raw['Date'] = pd.to_datetime(rates_raw['Date'], format='mixed')
+
+# Ensure they are normalized to date (no time component)
+sales_raw['Date'] = sales_raw['Date'].dt.normalize()
+rates_raw['Date'] = rates_raw['Date'].dt.normalize()
+
+# Filter invalid rows and drop NaNs
+sales_cleaned = sales_raw.dropna(subset=['Quantity', 'UnitPrice']).copy()
+sales_cleaned = sales_cleaned[(sales_cleaned['Quantity'] > 0) & (sales_cleaned['UnitPrice'] > 0)]
+
+# 2. Handle exchange rates
+# Generate a complete date range covering all dates in sales and rates
+min_date = min(sales_cleaned['Date'].min(), rates_raw['Date'].min())
+max_date = max(sales_cleaned['Date'].max(), rates_raw['Date'].max())
+all_dates = pd.date_range(start=min_date, end=max_date)
+
+rates_pivot = rates_raw.pivot(index='Date', columns='Currency', values='Rate_to_USD')
+rates_reindexed = rates_pivot.reindex(all_dates)
+
+# Forward fill missing values, then backward fill for initial missing values
+rates_filled = rates_reindexed.ffill().bfill()
+rates_melted = rates_filled.reset_index().melt(id_vars='index', value_name='Rate_to_USD').rename(columns={'index': 'Date'})
+
+# 3. Currency Conversion
+merged = pd.merge(sales_cleaned, rates_melted, on=['Date', 'Currency'], how='left')
+
+# Calculate USD_Revenue
+merged['USD_Revenue'] = merged['Quantity'] * merged['UnitPrice'] / merged['Rate_to_USD']
+
+# 4. Aggregation
+daily_sales = merged.groupby('Date')['USD_Revenue'].sum().reset_index(name='Daily_Revenue')
+
+# Reindex to ensure we have every calendar day between min and max sales dates
+sales_date_range = pd.date_range(start=daily_sales['Date'].min(), end=daily_sales['Date'].max())
+daily_sales = daily_sales.set_index('Date').reindex(sales_date_range, fill_value=0.0).reset_index()
+daily_sales = daily_sales.rename(columns={'index': 'Date'})
+
+# Calculate rolling 7-day average
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Daily_Revenue'].rolling(window=7, min_periods=1).mean()
+
+# Round columns to 2 decimal places
+daily_sales['Daily_Revenue'] = daily_sales['Daily_Revenue'].round(2)
+daily_sales['Rolling_7d_Revenue'] = daily_sales['Rolling_7d_Revenue'].round(2)
+
+# Format Date to YYYY-MM-DD string as requested
+daily_sales['Date'] = daily_sales['Date'].dt.strftime('%Y-%m-%d')
+
+# Save daily_sales.csv
+daily_sales.to_csv('/home/user/daily_sales.csv', index=False)
+
+# 5. Metrics
+total_revenue = round(merged['USD_Revenue'].sum(), 2)
+top_product = str(merged.groupby('Product')['USD_Revenue'].sum().idxmax())
+total_orders = int(merged['OrderID'].nunique())
+
+metrics = {
+    "Total_USD_Revenue": float(total_revenue),
+    "Top_Product": top_product,
+    "Total_Orders": total_orders
+}
+
+with open('/home/user/metrics.json', 'w') as f:
+    json.dump(metrics, f)
+
+# 6. Plotting
+plt.figure(figsize=(10, 6))
+# Plot using the dates and rolling revenue
+plt.plot(pd.to_datetime(daily_sales['Date']), daily_sales['Rolling_7d_Revenue'], marker='o', linestyle='-')
+plt.title('Rolling 7-Day USD Revenue')
+plt.xlabel('Date')
+plt.ylabel('Rolling 7-Day USD Revenue')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('/home/user/dashboard.png')
+"""
+
+nb['cells'] = [nbf.v4.new_code_cell(code.strip())]
+
+with open('/home/user/dashboard.ipynb', 'w') as f:
+    nbf.write(nb, f)
+EOF Syntax Errors: [
+  'Error node: "<" at 0:0',
+  'Error node: "()" at 3:24',
+  'Error node: "())]" at 92:46',
+  'Error node: "(" at 94:9',
+  'Missing node: "" at 94:44'
+]
+I have created the Jupyter notebook `/home/user/dashboard.ipynb` and successfully executed it to process the raw sales data and generate the required outputs.
+
+The notebook performs the following:
+1. **Data Cleaning:** Reads both the sales data and exchange rates, parses mixed date formats directly to `YYYY-MM-DD`, drops rows with missing valid entries, and filters out invalid ones (like those with negative/zero `Quantity` or `UnitPrice`).
+2. **Currency Conversion:** Automatically generates a comprehensive date range, interpolates missing exchange rates using forward and backward fills, dynamically merges the datasets, and calculates `USD_Revenue` using the formula `Quantity * UnitPrice / Rate_to_USD`.
+3. **Aggregation:** Computes the daily revenue on a fully calendarized timeline (zero-filling days with no sales) and correctly implements the 7-day rolling average using `min_periods=1`.
+
+I also executed the notebook using `jupyter nbconvert --to notebook --execute /home/user/dashboard.ipynb`. As requested, all output files have been successfully generated and formatted:
+- **`/home/user/daily_sales.csv`:** Includes chronological dates, Daily Revenue, and Rolling 7-day Revenue (rounded to 2 decimal places).
+- **`/home/user/metrics.json`:** Includes `Total_USD_Revenue`, `Total_Orders`, and `Top_Product`.
+- **`/home/user/dashboard.png`:** A line plot visualizing the 7-day rolling average over time.

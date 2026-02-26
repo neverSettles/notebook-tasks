@@ -1,0 +1,232 @@
+YOLO mode is enabled. All tool calls will be automatically approved.
+YOLO mode is enabled. All tool calls will be automatically approved.
+I will create the Jupyter notebook with the required data processing, aggregation, statistical testing, and validation logic, and then execute it to generate the final summary JSON file.
+
+I will now execute the Jupyter notebook using `nbconvert` to generate the summary data and validate the logic.
+
+I need to inspect the Jupyter notebook JSON format, as it appears there was a JSON decoding error caused by unescaped characters during writing.
+
+I will create a short Python script to programmatically build and save the notebook. This is safer and guarantees the notebook structure is perfectly valid JSON without escaping issues.
+
+Bash command parsing error detected for command: << 'EOF' > /home/user/create_notebook.py
+import json
+
+notebook = {
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import glob\n",
+    "import json\n",
+    "from scipy.stats import chi2_contingency\n",
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "file_pattern = '/home/user/data/campaign_day_*.csv'\n",
+    "files = glob.glob(file_pattern)\n",
+    "valid_dfs = []\n",
+    "files_processed = 0\n",
+    "files_failed = 0\n",
+    "\n",
+    "for f in files:\n",
+    "    try:\n",
+    "        df = pd.read_csv(f)\n",
+    "        # Check for required columns\n",
+    "        if not {'user_id', 'group', 'converted'}.issubset(df.columns):\n",
+    "            raise ValueError('Missing required columns')\n",
+    "        valid_dfs.append(df)\n",
+    "        files_processed += 1\n",
+    "        print(f'Processed file {f}')\n",
+    "    except Exception as e:\n",
+    "        files_failed += 1\n",
+    "        print(f'Failed to process file {f}: {e}')\n",
+    "\n",
+    "if valid_dfs:\n",
+    "    combined_df = pd.concat(valid_dfs, ignore_index=True)\n",
+    "else:\n",
+    "    combined_df = pd.DataFrame(columns=['user_id', 'group', 'converted'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Data Aggregation\n",
+    "metrics = {}\n",
+    "for grp in ['control', 'treatment']:\n",
+    "    grp_df = combined_df[combined_df['group'] == grp]\n",
+    "    impressions = len(grp_df)\n",
+    "    conversions = int(grp_df['converted'].sum()) if impressions > 0 else 0\n",
+    "    conversion_rate = float(conversions / impressions) if impressions > 0 else 0.0\n",
+    "    \n",
+    "    metrics[grp] = {\n",
+    "        'impressions': impressions,\n",
+    "        'conversions': conversions,\n",
+    "        'conversion_rate': conversion_rate\n",
+    "    }\n",
+    "\n",
+    "# Chi-Square Test of Independence\n",
+    "if not combined_df.empty and len(combined_df['group'].unique()) > 1:\n",
+    "    contingency = pd.crosstab(combined_df['group'], combined_df['converted'])\n",
+    "    try:\n",
+    "        chi2, p, dof, expected = chi2_contingency(contingency)\n",
+    "    except ValueError:\n",
+    "        chi2, p = 0.0, 1.0\n",
+    "else:\n",
+    "    chi2, p = 0.0, 1.0\n",
+    "\n",
+    "metrics['files_processed'] = files_processed\n",
+    "metrics['files_failed'] = files_failed\n",
+    "metrics['chi_square_statistic'] = float(chi2)\n",
+    "metrics['p_value'] = float(p)\n",
+    "\n",
+    "# Output Generation\n",
+    "with open('/home/user/ab_test_summary.json', 'w') as f:\n",
+    "    json.dump(metrics, f, indent=4)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": None,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Validation Cells\n",
+    "assert metrics['control']['conversions'] + metrics['treatment']['conversions'] == combined_df['converted'].sum(), 'Total conversions mismatch.'\n",
+    "assert files_processed + files_failed == len(files), 'Total files count mismatch.'\n",
+    "print('All validations passed successfully.')"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "name": "python",
+   "version": "3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
+
+with open('/home/user/ab_test_batch.ipynb', 'w') as f:
+    json.dump(notebook, f, indent=4)
+EOF Syntax Errors: [
+  'Error node: "<" at 0:0',
+  'Error node: "{\n' +
+    '   "cell_type": "code",\n' +
+    '   "execution_count": None,\n' +
+    '   "metadata": {},\n' +
+    '   "outputs": [],\n' +
+    '   "source": [\n' +
+    '    "import pandas as pd\\n",\n' +
+    '    "import glob\\n",\n' +
+    '    "import json\\n",\n' +
+    '    "from scipy.stats import chi2_contingency\\n",\n' +
+    '    "import numpy as np"\n' +
+    '   ]\n' +
+    '  },\n' +
+    '  {\n' +
+    '   "cell_type": "code",\n' +
+    '   "execution_count": None,\n' +
+    '   "metadata": {},\n' +
+    '   "outputs": [],\n' +
+    '   "source": [\n' +
+    `    "file_pattern = '/home/user/data/campaign_day_*.csv'\\n",\n` +
+    '    "files = glob.glob(file_pattern)\\n",\n' +
+    '    "valid_dfs = []\\n",\n' +
+    '    "files_processed = 0\\n",\n' +
+    '    "files_failed = 0\\n",\n' +
+    '    "\\n",\n' +
+    '    "for f in files:\\n",\n' +
+    '    "    try:\\n",\n' +
+    '    "        df = pd.read_csv(f)\\n",\n' +
+    '    "        # Check for required columns\\n",\n' +
+    `    "        if not {'user_id', 'group', 'converted'}.issubset(df.columns):\\n",\n` +
+    `    "            raise ValueError('Missing required columns')\\n",\n` +
+    '    "        valid_dfs.append(df)\\n",\n' +
+    '    "        files_processed += 1\\n",\n' +
+    `    "        print(f'Processed file {f}')\\n",\n` +
+    '    "    except Exception as e:\\n",\n' +
+    '    "        files_failed += 1\\n",\n' +
+    `    "        print(f'Failed to process file {f}: {e}')\\n",\n` +
+    '    "\\n",\n' +
+    '    "if valid_dfs:\\n",\n' +
+    '    "    combined_df = pd.concat(valid_dfs, ignore_index=True)\\n",\n' +
+    '    "else:\\n",\n' +
+    `    "    combined_df = pd.DataFrame(columns=['user_id', 'group', 'converted'])"\n` +
+    '   ]\n' +
+    '  },\n' +
+    '  {\n' +
+    '   "cell_type": "code",\n' +
+    '   "execution_count": None,\n' +
+    '   "metadata": {},\n' +
+    '   "outputs": [],\n' +
+    '   "source": [\n' +
+    '    "# Data Aggregation\\n",\n' +
+    '    "metrics = {}\\n",\n' +
+    `    "for grp in ['control', 'treatment']:\\n",\n` +
+    `    "    grp_df = combined_df[combined_df['group'] == grp]\\n",\n` +
+    '    "    impressions = len(grp_df)\\n",\n' +
+    `    "    conversions = int(grp_df['converted'].sum()) if impressions > 0 else 0\\n",\n` +
+    '    "    conversion_rate = float(conversions / impressions) if impressions > 0 else 0.0\\n",\n' +
+    '    "    \\n",\n' +
+    '    "    metrics[grp] = {\\n",\n' +
+    `    "        'impressions': impressions,\\n",\n` +
+    `    "        'conversions': conversions,\\n",\n` +
+    `    "        'conversion_rate': conversion_rate\\n",\n` +
+    '    "    }\\n",\n' +
+    '    "\\n",\n' +
+    '    "# Chi-Square Test of Independence\\n",\n' +
+    `    "if not combined_df.empty and len(combined_df['group'].unique()) > 1:\\n",\n` +
+    `    "    contingency = pd.crosstab(combined_df['group'], combined_df['converted'])\\n",\n` +
+    '    "    try:\\n",\n' +
+    '    "        chi2, p, dof, expected = chi2_contingency(contingency)\\n",\n' +
+    '    "    except ValueError:\\n",\n' +
+    '    "        chi2, p = 0.0, 1.0\\n",\n' +
+    '    "else:\\n",\n' +
+    '    "    chi2, p = 0.0, 1.0\\n",\n' +
+    '    "\\n",\n' +
+    `    "metrics['files_processed'] = files_processed\\n",\n` +
+    `    "metrics['files_failed'] = files_failed\\n",\n` +
+    `    "metrics['chi_square_statistic'] = float(chi2)\\n",\n` +
+    `    "metrics['p_value'] = float(p)\\n",\n` +
+    '    "\\n",\n' +
+    '    "# Output Generation\\n",\n' +
+    `    "with open('/home/user/ab_test_summary.json', 'w') as f:\\n",\n` +
+    '    "    json.dump(metrics, f, indent=4)"\n' +
+    '   ]\n' +
+    '  }," at 5:2',
+  'Error node: "open" at 117:5',
+  'Missing node: "" at 117:48'
+]
+I will now re-run the `jupyter nbconvert` command to process the notebook data properly.
+
+I will verify the final output file `ab_test_summary.json` to ensure the required metrics, tests, and formatting were generated successfully.
+
+I have created the requested Jupyter notebook at `/home/user/ab_test_batch.ipynb` and executed it. 
+
+### Implementation details:
+1. **Batch Processing & Error Handling:** The script locates all CSV files matching the `campaign_day_*.csv` pattern. It reads each with a `try...except` block, safely skipping corrupted files or missing columns while counting successfully processed and failed instances.
+2. **Data Aggregation:** Computes the total `impressions`, `conversions`, and `conversion_rate` for both `control` and `treatment` groups across combined valid dataframes.
+3. **Statistical Test:** Evaluates statistical significance with a chi-square test of independence using `scipy.stats.chi2_contingency`, computing the chi-square statistic and the p-value.
+4. **Validation Asserts:** Checks that all files correspond accurately (valid + failed = total) and that segment conversions add up appropriately to verify correctness.
+5. **Output JSON:** Produces the requested structure, outputting successfully to `/home/user/ab_test_summary.json`. 
+
+The notebook was successfully executed using `jupyter nbconvert` as requested, generating the final artifacts based on the CSV data.

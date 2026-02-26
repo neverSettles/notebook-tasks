@@ -16,14 +16,7 @@ RUN pip3 install --no-cache-dir pytest pandas jupyter
 RUN useradd -m -s /bin/bash user
 
 # Create the raw input data file
-RUN cat <<'EOF' > /home/user/raw_inventory.csv
-Item ID, Product Name ,Product Price, Date Added
-101,Widget A,$12.50,12/31/2022
-102,Widget B,15.00,2023-01-15
-103,Widget C,N/A,15-Jan-2023
-104,Widget D,$9.99,Unknown
-105,Widget E,Unknown,03/05/23
-EOF
+RUN printf 'Item ID, Product Name ,Product Price, Date Added\n101,Widget A,$12.50,12/31/2022\n102,Widget B,15.00,2023-01-15\n103,Widget C,N/A,15-Jan-2023\n104,Widget D,$9.99,Unknown\n105,Widget E,Unknown,03/05/23\n' > /home/user/raw_inventory.csv
 
 # Ensure correct permissions
 RUN chown -R user:user /home/user

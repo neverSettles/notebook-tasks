@@ -12,3 +12,14 @@ Here are the requirements:
 4. **Step 3 (Pivot)**: Pivot the aggregated data back into a clean wide format for a final report. The index should be `Store_ID`, the columns should be the unique `Month` values, and the values should be the `Total_Sales`. Save this final dataframe to `/home/user/final_report.csv` (keeping the index).
 
 Make sure the notebook runs perfectly from start to finish with `jupyter nbconvert --to notebook --execute /home/user/etl_pipeline.ipynb`.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/etl_pipeline.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.
+
+**Expected Data Shapes:**
+- `checkpoint_1_long.csv`: Should have 12 rows (3 stores x 4 date columns melted) with columns `Store_ID`, `Region`, `Month`, `Sales`. Melt ALL date columns (2023-01-01, 2023-01-02, 2023-02-01, 2023-02-02) into a `Month` column.
+- `checkpoint_2_agg.csv`: Should have 6 rows (3 stores x 2 months) after aggregating sales by Store_ID, Region, and month (extract YYYY-MM from the date).
+- `final_report.csv`: Should have 3 rows (one per store) in wide format with months as columns.

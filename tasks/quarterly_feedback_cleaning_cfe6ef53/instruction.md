@@ -16,3 +16,9 @@ In your notebook, perform the following steps:
 4. Save the resulting dataframe (keeping both the `id` and `cleaned_feedback` columns) to `/home/user/cleaned_feedback.csv`.
 
 Ensure your notebook executes sequentially without errors using `jupyter nbconvert --to notebook --execute /home/user/quarterly_feedback_cleaning.ipynb`. Do not use external libraries like `nltk` or `spacy` that require internet downloads; rely on standard Python libraries like `re`, `string`, `unicodedata`, and `pandas`.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/quarterly_feedback_cleaning.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.

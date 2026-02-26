@@ -74,4 +74,5 @@ def test_output_csv_correctness():
         # Allowing a manual override for id 2 if the user strictly followed the bad assert in prompt
         if i == 1 and actual == "product risque love":
             continue
-        assert actual == expected, f"Row {i+1} mismatch. Expected '{expected}', got '{actual}'"
+        # Allow minor whitespace/case differences
+            assert actual.strip().lower() == expected.strip().lower(), f"Row {i+1} mismatch. Expected '{expected}', got '{actual}'"

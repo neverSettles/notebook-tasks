@@ -67,3 +67,20 @@ def test_notebook_execution_and_output():
         expected_rank = expected["sales_rank"]
         assert actual_rank == expected_rank, \
             f"Expected rank for {region} to be {expected_rank}, got {actual_rank}"
+
+
+def test_running_totals():
+    """Verify running totals CSV."""
+    import csv
+    path = "/home/user/running_totals.csv"
+    assert os.path.exists(path), f"Running totals CSV missing"
+    with open(path) as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+    assert len(rows) > 0, "Running totals CSV is empty"
+    assert 'running_total' in reader.fieldnames, "Missing running_total column"
+    assert 'region' in reader.fieldnames, "Missing region column"
+
+def test_revenue_chart():
+    assert os.path.exists("/home/user/revenue_chart.png"), "Revenue chart missing"
+

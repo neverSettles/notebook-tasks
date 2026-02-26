@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y tmux \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pytest, pandas, and jupyter for the task
-RUN pip3 install pytest pandas jupyter
+RUN pip3 install matplotlib numpy pytest pandas jupyter
 
 # Create user 'user'
 RUN useradd -m -d /home/user -s /bin/bash user

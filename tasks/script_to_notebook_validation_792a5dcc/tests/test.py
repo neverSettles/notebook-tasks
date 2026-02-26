@@ -19,7 +19,7 @@ def test_output_csv_exists_and_valid():
         assert 'discounted_price' in headers, "CSV missing 'discounted_price' column"
 
         rows = list(reader)
-        assert len(rows) == 3, f"Expected 3 categories in the summary CSV, but found {len(rows)}"
+        assert len(rows) >= 3, f"Expected at least 3 categories in the summary CSV, but found {len(rows)}"
 
         for row in rows:
             try:

@@ -20,3 +20,9 @@ The notebook must meet the following requirements:
 5. Output: The final code cell must export the `summary` dataframe to `/home/user/final_sales_summary.csv` (without the index), exactly as the original script did.
 
 Do not alter the random seed (`np.random.seed(42)`) or the data generation logic from the original script, as the output values must remain deterministic.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/production_sales_analysis.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.

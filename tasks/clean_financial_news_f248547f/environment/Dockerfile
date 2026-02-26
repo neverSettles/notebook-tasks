@@ -15,13 +15,7 @@ RUN pip3 install --no-cache-dir pytest pandas jupyter notebook
 RUN useradd -m -d /home/user -s /bin/bash user
 
 # Create the input CSV file
-RUN cat <<'EOF' > /home/user/financial_news.csv
-date,headline,price
-2023-01-01,The Company XYZ Announces New Product!,100.50
-2023-01-02,A terrible day for the markets.,98.20
-2023-01-03,Is an economic boom on the horizon?,102.00
-2023-01-04,Investors are looking at safe havens.,101.10
-EOF
+RUN printf 'date,headline,price\n2023-01-01,The Company XYZ Announces New Product!,100.50\n2023-01-02,A terrible day for the markets.,98.20\n2023-01-03,Is an economic boom on the horizon?,102.00\n2023-01-04,Investors are looking at safe havens.,101.10\n' > /home/user/financial_news.csv
 
 # Ensure correct permissions
 RUN chown -R user:user /home/user

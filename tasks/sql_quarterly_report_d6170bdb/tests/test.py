@@ -1,5 +1,6 @@
 # test_final_state.py
 import os
+import json
 import sqlite3
 import csv
 import math
@@ -67,3 +68,17 @@ def test_plot_exists():
     assert os.path.exists(plot_path), f"Plot PNG {plot_path} is missing."
     assert os.path.isfile(plot_path), f"Path {plot_path} is not a file."
     assert os.path.getsize(plot_path) > 0, f"Plot PNG {plot_path} is empty."
+
+
+def test_executive_summary():
+    import json
+    path = "/home/user/executive_summary.json"
+    assert os.path.exists(path), f"Executive summary missing"
+    with open(path) as f:
+        data = json.load(f)
+    assert "total_revenue" in data, "Missing total_revenue"
+    assert "top_region" in data, "Missing top_region"
+    assert "n_regions" in data, "Missing n_regions"
+    assert isinstance(data["total_revenue"], (int, float)), "total_revenue must be numeric"
+    assert isinstance(data["top_region"], str), "top_region must be string"
+

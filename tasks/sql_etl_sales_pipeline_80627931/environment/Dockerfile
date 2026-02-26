@@ -4,7 +4,7 @@ RUN apt-get update && \
     apt-get install -y tmux python3 python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install pytest pandas jupyter
+RUN pip3 install matplotlib pytest pandas jupyter
 
 RUN useradd -m -s /bin/bash user
 

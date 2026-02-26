@@ -47,3 +47,33 @@ def test_excel_output():
         namelist = zf.namelist()
         assert 'xl/worksheets/sheet1.xml' in namelist or 'xl/workbook.xml' in namelist, \
             f"File {excel_path} does not contain standard Excel workbook structures."
+
+
+def test_normalized_csv():
+    """Verify normalized expression data."""
+    import csv
+    path = "/home/user/normalized_expression.csv"
+    assert os.path.exists(path), f"Normalized CSV missing at {path}"
+    with open(path) as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+    assert len(rows) > 0, "Normalized CSV is empty"
+    # Check values are in 0-1 range
+    for row in rows:
+        for key, val in row.items():
+            if key != 'gene_id' and key != 'Gene':
+                v = float(val)
+                assert 0 <= v <= 1.001, f"Value {v} not in 0-1 range for {key}"
+
+def test_expression_summary():
+    import json
+    path = "/home/user/expression_summary.json"
+    assert os.path.exists(path), f"Summary JSON missing at {path}"
+    with open(path) as f:
+        data = json.load(f)
+    assert "total_genes" in data, "Missing total_genes"
+    assert "total_samples" in data, "Missing total_samples"
+    assert "mean_expression" in data, "Missing mean_expression"
+    assert "highly_expressed_genes" in data, "Missing highly_expressed_genes"
+    assert isinstance(data["highly_expressed_genes"], list), "highly_expressed_genes must be a list"
+

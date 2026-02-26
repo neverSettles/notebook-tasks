@@ -18,3 +18,13 @@ Here is what you need to do:
    - Save the grouped summary data (Group, Total Visitors, Converted, Conversion Rate) as `/home/user/summary_stats.csv`.
    
 Make sure the notebook runs perfectly from start to finish using `jupyter nbconvert --to notebook --execute /home/user/ab_test_analysis.ipynb`.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/ab_test_analysis.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.
+
+**Expected Output Formats:**
+- `summary_stats.csv`: Must have columns `group`, `Total_Visitors`, `Converted`, `Conversion_Rate`. Must contain exactly 2 rows: one for `control` and one for `treatment` (use these exact group names).
+- `conversion_plot.png`: A valid PNG bar chart.

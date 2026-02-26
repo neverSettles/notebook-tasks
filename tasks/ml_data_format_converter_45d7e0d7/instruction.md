@@ -12,3 +12,17 @@ Your notebook must do the following in separate, clearly defined cells:
 4. **Export:** Save the final merged DataFrame to `/home/user/ml_training_data.csv` without the index.
 
 The notebook must execute successfully with `jupyter nbconvert --to notebook --execute /home/user/clean_pipeline.ipynb`.
+
+
+**Additional Requirement - Feature Analysis and Train/Test Split:**
+After merging the data files:
+1. Calculate the correlation matrix for all numeric columns and save a heatmap to `/home/user/correlation_heatmap.png`.
+2. Perform a stratified train/test split (80/20) based on the target variable, using `random_state=42`.
+3. Save `train.csv` and `test.csv` to `/home/user/`.
+4. Save a JSON report at `/home/user/split_report.json` with: `"train_size"` (int), `"test_size"` (int), `"n_features"` (int), `"correlation_max"` (float, highest absolute correlation between non-identical features).
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/clean_pipeline.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.

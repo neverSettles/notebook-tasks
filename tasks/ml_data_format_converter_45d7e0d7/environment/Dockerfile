@@ -9,7 +9,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install required Python libraries
-RUN pip3 install --no-cache-dir pandas openpyxl jupyter pytest
+RUN pip3 install --no-cache-dir pandas openpyxl jupyter matplotlib numpy scikit-learn seaborn pytest
 
 # Create user 'user'
 RUN useradd -m -s /bin/bash user

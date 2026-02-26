@@ -34,3 +34,15 @@ The notebook must perform the following steps in order:
 Requirements:
 - Only use standard data science libraries (pandas, numpy, re, html, unicodedata).
 - The notebook must be executable from start to finish via `jupyter nbconvert --to notebook --execute /home/user/quarterly_report.ipynb` without raising any assertion errors.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/quarterly_report.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.
+
+**Cleaning examples:**
+- Input: `<p>Great service by agent!</p> Contact me at john@email.com.`
+- After HTML stripping: `Great service by agent! Contact me at john@email.com.`
+- After email redaction: `Great service by agent! Contact me at [EMAIL].`
+- After whitespace trim: `Great service by agent! Contact me at [EMAIL].`

@@ -67,3 +67,22 @@ def test_cleaned_data_content():
 
         assert profit == pytest.approx(expected_row["Profit"], abs=0.01), \
             f"Incorrect Profit for {date}. Expected {expected_row['Profit']}, got {profit}."
+
+
+def test_outlier_report():
+    """Verify outlier detection report exists and has correct structure."""
+    import json
+    report_path = "/home/user/outlier_report.json"
+    assert os.path.exists(report_path), f"Outlier report missing at {report_path}"
+    with open(report_path) as f:
+        data = json.load(f)
+    assert "n_revenue_outliers" in data, "Missing n_revenue_outliers"
+    assert "revenue_mean" in data, "Missing revenue_mean"
+    assert "revenue_std" in data, "Missing revenue_std"
+    assert isinstance(data["n_revenue_outliers"], int), "n_revenue_outliers must be int"
+    assert isinstance(data["revenue_mean"], (int, float)), "revenue_mean must be numeric"
+
+def test_boxplot_exists():
+    """Verify box plot was generated."""
+    assert os.path.exists("/home/user/boxplot.png"), "Box plot missing at /home/user/boxplot.png"
+

@@ -9,3 +9,16 @@ Create a Jupyter Notebook at `/home/user/etl_pipeline.ipynb` that performs the f
 The output CSV must contain exactly three columns named: `region`, `total_revenue`, and `sales_rank`.
 
 Ensure your notebook executes cleanly from top to bottom. Automated tests will run your notebook using `jupyter nbconvert --to notebook --execute /home/user/etl_pipeline.ipynb` and check the contents of `/home/user/clean_sales.csv`.
+
+
+**Additional Requirement - Advanced SQL Analysis:**
+After the basic ETL pipeline:
+1. Add a SQL query that calculates a running total of revenue per region (using `SUM() OVER (PARTITION BY region ORDER BY amount)`).
+2. Save the running total results to `/home/user/running_totals.csv` with columns: `region`, `amount`, `running_total`.
+3. Generate a bar chart comparing total revenue per region and save to `/home/user/revenue_chart.png`.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/etl_pipeline.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.

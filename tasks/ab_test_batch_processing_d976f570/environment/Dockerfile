@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python packages
-RUN pip3 install pytest pandas jupyter
+RUN pip3 install scipy matplotlib pytest pandas jupyter
 
 # Create user
 RUN useradd -m -s /bin/bash user

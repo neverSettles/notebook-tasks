@@ -27,3 +27,9 @@ Please create a Jupyter Notebook named `/home/user/etl_pipeline.ipynb` that perf
      - Sheet 2 named `"Top_Items"`: For each region, find the top 2 `item_code`s by total profit. Sort by `region_name` alphabetically, then by profit descending. Columns must be `region_name`, `item_code`, `item_profit`.
 
 The notebook must be fully executable from top to bottom without errors using `jupyter nbconvert --to notebook --execute /home/user/etl_pipeline.ipynb`. Do not use external APIs.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/etl_pipeline.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.

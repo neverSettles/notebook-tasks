@@ -13,3 +13,9 @@ Here is what the notebook needs to do:
 4. **Cell 4**: Keep only the `date`, `cleaned_headline`, and `price` columns. Save the resulting DataFrame to `/home/user/cleaned_news.csv` (do not include the index).
 
 Make sure the notebook can be executed sequentially from start to finish without errors.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/clean_analysis.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.

@@ -27,3 +27,14 @@ Your notebook must perform the following operations:
    - Create a plot of `Date` vs `Rolling_7d_Revenue` and save it as `/home/user/dashboard.png` using matplotlib or seaborn.
 
 The notebook must be perfectly executable with `jupyter nbconvert --to notebook --execute /home/user/dashboard.ipynb`. Do not use external APIs.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/dashboard.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.
+
+**Metric calculation formulas:**
+- `Total_USD_Revenue`: Sum of (Quantity * UnitPrice * exchange_rate) for all orders. Use the exchange rates from `exchange_rates.csv`.
+- `Total_Orders`: Count of unique OrderIDs.
+- Daily sales in `daily_sales.csv` should aggregate USD revenue by Date.

@@ -9,3 +9,16 @@ Please create a Jupyter notebook at `/home/user/quarterly_report.ipynb` that per
 5. **Visualization**: Create a simple bar chart of the total revenue by region using matplotlib or seaborn. Save the plot as `/home/user/revenue_plot.png`.
 
 The input file `/home/user/raw_sales.csv` is already provided in the environment.
+
+
+**Additional Requirement - Growth Analysis and Executive Summary:**
+After creating the quarterly report:
+1. Calculate quarter-over-quarter revenue growth percentage for each region.
+2. Save an executive summary JSON at `/home/user/executive_summary.json` with: `"total_revenue"` (float), `"top_region"` (string, region with highest revenue), `"n_regions"` (int), `"has_growth"` (boolean, whether any region showed positive growth).
+3. Add a markdown cell at the end of the notebook titled "## Executive Summary" that describes the key findings.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/quarterly_report.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.

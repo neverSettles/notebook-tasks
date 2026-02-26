@@ -60,3 +60,20 @@ def test_output_csv_exists_and_correct():
             found_genes.add(gene)
 
         assert found_genes == set(expected_genes.keys()), f"Missing expected genes. Found {found_genes}, expected {set(expected_genes.keys())}."
+
+
+def test_top_genes_csv():
+    """Verify top genes analysis output."""
+    import csv
+    path = "/home/user/top_genes.csv"
+    assert os.path.exists(path), f"Top genes CSV missing at {path}"
+    with open(path) as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+    assert len(rows) == 5, f"Expected 5 top genes, got {len(rows)}"
+    assert 'gene_id' in reader.fieldnames, "Missing gene_id column"
+    assert 'fold_change' in reader.fieldnames, "Missing fold_change column"
+
+def test_top_genes_plot():
+    assert os.path.exists("/home/user/top_genes_plot.png"), "Top genes plot missing"
+

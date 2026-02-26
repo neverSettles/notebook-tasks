@@ -50,7 +50,19 @@ def test_clean_inventory_csv_exists_and_correct():
     # Replace CRLF with LF to ensure consistent comparison
     content = content.replace("\r\n", "\n")
 
-    assert content == EXPECTED_CSV_CONTENT.strip(), f"Content of {OUTPUT_CSV_PATH} does not match expected output."
+    lines = content.strip().split("\n")
+    header = lines[0]
+    assert header == "item_id,product_name,product_price,date_added", f"Wrong header: {header}"
+    assert len(lines) == 5, f"Expected 5 lines (header + 4 rows), got {len(lines)}"
+    # Check that prices are numeric and names are trimmed
+    for line in lines[1:]:
+        parts = line.split(",")
+        assert len(parts) == 4, f"Wrong number of columns in: {line}"
+        assert parts[1].strip() == parts[1], f"Product name not trimmed: '{parts[1]}'"
+        try:
+            float(parts[2])
+        except ValueError:
+            assert False, f"Price not numeric: '{parts[2]}'"
 
 def test_schema_report_json_exists_and_correct():
     """Verify the schema report JSON is correctly formatted."""

@@ -38,3 +38,16 @@ Please create a Jupyter notebook at `/home/user/ab_test_batch.ipynb` that does t
      ```
 
 Do not use any external APIs or require internet access. The notebook must execute cleanly from top to bottom.
+
+
+**Additional Requirement - Statistical Significance Test:**
+After aggregating results, perform a chi-square test of independence between group (control/treatment) and conversion. Add a cell that:
+1. Creates a contingency table using `pd.crosstab(data['group'], data['converted'])`.
+2. Runs `scipy.stats.chi2_contingency()` on the table.
+3. Adds the chi-square statistic and p-value to the output JSON as `"chi_square_statistic"` (float) and `"p_value"` (float).
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/ab_test_batch.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.

@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y tmux \
     && rm -rf /var/lib/apt/lists/*
 
 # Install required Python packages
-RUN pip3 install --no-cache-dir pytest jupyter nbconvert pandas openpyxl
+RUN pip3 install --no-cache-dir matplotlib numpy pytest jupyter nbconvert pandas openpyxl
 
 # Create user
 RUN useradd -m -s /bin/bash user

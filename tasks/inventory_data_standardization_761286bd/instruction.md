@@ -11,3 +11,9 @@ Here is what you need to do:
 8. Finally, generate a dictionary mapping the standardized column names to their final string representation of pandas dtypes (e.g., 'float64', 'int64', 'object') and save it as a JSON file at `/home/user/schema_report.json`.
 
 The notebook must execute successfully from start to finish using `jupyter nbconvert --execute --to notebook /home/user/standardize_data.ipynb`. Use pandas for all data manipulation.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/standardize_data.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.

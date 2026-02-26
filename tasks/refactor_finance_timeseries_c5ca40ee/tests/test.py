@@ -51,3 +51,21 @@ def test_output_csv_correct():
             actual = actual_prices[ticker]
             assert abs(actual - expected_price) < 1e-4, \
                 f"Incorrect price for {ticker}: {actual} (expected {expected_price})"
+
+
+def test_trend_analysis():
+    import json
+    path = "/home/user/trend_analysis.json"
+    assert os.path.exists(path), f"Trend analysis JSON missing"
+    with open(path) as f:
+        data = json.load(f)
+    assert len(data) > 0, "Trend analysis is empty"
+    for ticker, info in data.items():
+        assert "avg_price" in info, f"Missing avg_price for {ticker}"
+        assert "price_trend" in info, f"Missing price_trend for {ticker}"
+        assert info["price_trend"] in ("up", "down", "flat"), f"Invalid trend: {info['price_trend']}"
+        assert "volatility" in info, f"Missing volatility for {ticker}"
+
+def test_price_trends_plot():
+    assert os.path.exists("/home/user/price_trends.png"), "Price trends plot missing"
+

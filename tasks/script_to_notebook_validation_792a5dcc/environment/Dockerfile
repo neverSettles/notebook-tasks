@@ -15,23 +15,7 @@ RUN pip3 install pytest pandas numpy jupyter nbconvert
 RUN useradd -m -s /bin/bash user
 
 # Create the prototype script
-RUN cat <<'EOF' > /home/user/prototype_sales_calc.py
-import pandas as pd
-import numpy as np
-
-np.random.seed(42)
-categories = ['Electronics', 'Clothing', 'Home']
-data = {
-    'item_id': range(1, 101),
-    'category': np.random.choice(categories, 100),
-    'price': np.random.uniform(10, 100, 100),
-    'discount': np.random.uniform(0, 0.3, 100)
-}
-df = pd.DataFrame(data)
-df['discounted_price'] = df['price'] * (1 - df['discount'])
-summary = df.groupby('category')['discounted_price'].sum().reset_index()
-summary.to_csv('/home/user/final_sales_summary.csv', index=False)
-EOF
+RUN printf 'import pandas as pd\nimport numpy as np\n\nnp.random.seed(42)\ncategories = ['\''Electronics'\'', '\''Clothing'\'', '\''Home'\'']\ndata = {\n    '\''item_id'\'': range(1, 101),\n    '\''category'\'': np.random.choice(categories, 100),\n    '\''price'\'': np.random.uniform(10, 100, 100),\n    '\''discount'\'': np.random.uniform(0, 0.3, 100)\n}\ndf = pd.DataFrame(data)\ndf['\''discounted_price'\''] = df['\''price'\''] * (1 - df['\''discount'\''])\nsummary = df.groupby('\''category'\'')['\''discounted_price'\''].sum().reset_index()\nsummary.to_csv('\''/home/user/final_sales_summary.csv'\'', index=False)\n' > /home/user/prototype_sales_calc.py
 
 # Set ownership
 RUN chown -R user:user /home/user

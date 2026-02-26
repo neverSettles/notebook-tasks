@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y tmux \
     sudo \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir pytest pandas jupyter
+RUN pip3 install --no-cache-dir matplotlib pytest pandas jupyter
 
 RUN useradd -m -d /home/user -s /bin/bash user
 

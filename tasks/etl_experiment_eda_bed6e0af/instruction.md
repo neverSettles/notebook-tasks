@@ -14,3 +14,19 @@ Your notebook must accomplish the following steps in order:
    - The minimum `daily_rainfall` in the cleaned dataset is `>= 0`.
 
 The notebook must execute successfully from top to bottom with `jupyter nbconvert --to notebook --execute /home/user/etl_experiment_eda.ipynb`.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/etl_experiment_eda.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.
+
+**Expected JSON Structure for summary statistics:**
+```json
+{
+  "Fertilizer_A": {"mean_yield": <float>, "std_yield": <float>, "count": <int>},
+  "Fertilizer_B": {"mean_yield": <float>, "std_yield": <float>, "count": <int>},
+  "Fertilizer_C": {"mean_yield": <float>, "std_yield": <float>, "count": <int>}
+}
+```
+Use the exact fertilizer names from the dataset as keys.

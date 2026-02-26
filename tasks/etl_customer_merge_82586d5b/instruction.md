@@ -25,3 +25,14 @@ Create a notebook at `/home/user/etl_merge.ipynb` that does the following:
    - Save the cleaned, merged dataframe to `/home/user/merged_customers.csv` (without the index).
 
 Your notebook must run from top to bottom without errors using `jupyter nbconvert --to notebook --execute /home/user/etl_merge.ipynb`.
+
+**IMPORTANT: After creating the notebook, you must run it to generate the output files.** Execute the notebook using:
+```bash
+jupyter nbconvert --to notebook --execute /home/user/etl_merge.ipynb
+```
+The tests check for output files that are only created when the notebook is executed. Creating the notebook alone is not sufficient.
+
+**Merge Rules:**
+- When merging, the CRM data takes priority for `name` and `email` fields. The e-commerce data takes priority for `phone` (since CRM phone may be outdated).
+- The `last_purchase_date` comes from e-commerce data only.
+- Preserve the exact phone format from the e-commerce data (e.g., if ecom has `555-1234`, use that exact format).

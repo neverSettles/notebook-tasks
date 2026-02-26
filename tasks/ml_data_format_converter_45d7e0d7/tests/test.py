@@ -55,3 +55,28 @@ def test_output_csv_content():
         for actual, expected in zip(rows, expected_data):
             for col in expected_columns:
                 assert actual[col] == expected[col], f"Mismatch in row for store {expected['store_id']} at column {col}: expected '{expected[col]}', found '{actual[col]}'."
+
+
+def test_train_test_split():
+    """Verify train/test split files."""
+    import csv
+    for name in ["train.csv", "test.csv"]:
+        path = f"/home/user/{name}"
+        assert os.path.exists(path), f"{name} missing at {path}"
+        with open(path) as f:
+            rows = list(csv.DictReader(f))
+        assert len(rows) > 0, f"{name} is empty"
+
+def test_split_report():
+    import json
+    path = "/home/user/split_report.json"
+    assert os.path.exists(path), f"Split report missing"
+    with open(path) as f:
+        data = json.load(f)
+    assert data["train_size"] > data["test_size"], "Train should be larger than test"
+    assert "n_features" in data, "Missing n_features"
+    assert "correlation_max" in data, "Missing correlation_max"
+
+def test_correlation_heatmap():
+    assert os.path.exists("/home/user/correlation_heatmap.png"), "Correlation heatmap missing"
+

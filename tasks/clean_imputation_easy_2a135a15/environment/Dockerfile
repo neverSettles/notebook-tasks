@@ -6,7 +6,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install required Python packages
-RUN pip3 install --no-cache-dir pandas jupyter pytest
+RUN pip3 install --no-cache-dir pandas jupyter matplotlib pytest
 
 # Create a non-root user
 RUN useradd -m -s /bin/bash user
